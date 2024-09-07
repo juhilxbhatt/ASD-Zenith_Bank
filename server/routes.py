@@ -19,8 +19,8 @@ if not uri:
 client = MongoClient(uri, server_api=ServerApi('1'))
 
 # Choose the database and collection
-db = client["sample_analytics"]
-collection = db["accounts"]
+db = client["ZenithBank"]
+collection = db["Account"]
 
 # Define an example route
 @api.route('/api/data', methods=['GET'])
