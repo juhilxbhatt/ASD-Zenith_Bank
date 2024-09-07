@@ -62,17 +62,3 @@ def create_account():
     except Exception as e:
         print("Error Occurred:", e)  # Debug: Print any exceptions encountered
         return jsonify({"error": str(e)}), 500
-
-# Route to get all accounts (optional for testing or display purposes)
-@api.route('/api/accounts', methods=['GET'])
-def get_accounts():
-    print("Accounts Called")  # Debug: Endpoint is being called
-    try:
-        # Fetch all accounts from the 'accounts' collection
-        users = list(users_collection.find({}, {'_id': 0}))  # Do not include the _id field in the result
-        print("Accounts Fetched:", users)  # Debug: Print the fetched accounts
-        return jsonify(users), 200
-
-    except Exception as e:
-        print("Error Occurred:", e)  # Debug: Print any exceptions encountered
-        return jsonify({"error": str(e)}), 500
