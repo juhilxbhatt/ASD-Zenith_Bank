@@ -1,27 +1,28 @@
 trigger:
   branches:
     include:
-      - '*'  # Set to your default branch
+      - '*'  # This triggers the pipeline on any branch commit
 
 pool:
-  vmImage: 'ubuntu-latest'  # You can also use windows-latest if you prefer
+  vmImage: 'ubuntu-latest'
 
 steps:
 - task: UsePythonVersion@0
   inputs:
-    versionSpec: '3.x'  # Specify your Python version
+    versionSpec: '3.x'  # Specify the Python version you want to use
     addToPath: true
 
 - script: |
     python -m venv venv
-    source venv/bin/activate  # Use venv\Scripts\activate if on Windows
-    pip install -r server/requirements.txt  # Install your Flask app dependencies
-    pip install pytest pytest-flask         # Install testing dependencies
+    source venv/bin/activate  # For Windows, use `venv\Scripts\activate`
+    pip install -r server/requirements.txt
+    pip install pytest pytest-flask
   displayName: 'Install dependencies'
 
 - script: |
-    source venv/bin/activate  # Activate virtual environment (or venv\Scripts\activate on Windows)
-    pytest tests/ --junitxml=junit/test-results.xml  # Run tests and output results in JUnit format
+    source venv/bin/activate  # For Windows, use `venv\Scripts\activate`
+    export PYTHONPATH=$(pwd)  # Add the root directory to PYTHONPATH
+    pytest tests/ --junitxml=junit/test-results.xml
   displayName: 'Run tests'
 
 - task: PublishTestResults@2

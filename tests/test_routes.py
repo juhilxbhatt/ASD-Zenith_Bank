@@ -1,6 +1,6 @@
 import pytest
 from flask import Flask
-from server.routes import api  # Assuming routes.py is in server folder
+from server.routes import api
 
 @pytest.fixture
 def client():
