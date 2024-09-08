@@ -11,7 +11,9 @@ function TransactionLogs() {
     const fetchLogs = async () => {
       try {
         const response = await axios.get('/api/transaction_logs');
-        setLogs(response.data);
+        // Sort the logs by date in descending order
+        const sortedLogs = response.data.sort((a, b) => new Date(b.Date) - new Date(a.Date));
+        setLogs(sortedLogs);
       } catch (error) {
         console.error('Error fetching transaction logs:', error);
       }
@@ -29,8 +31,8 @@ function TransactionLogs() {
       <h1>Transaction Logs</h1>
       <ul className="logs-list">
         {logs.map((log, index) => (
-          <li key={index} className="log-item">
-            <div onClick={() => handleLogClick(log)}>
+          <li key={index} className="log-item" onClick={() => handleLogClick(log)}>
+            <div className="log-inline">
               <p><strong>Amount:</strong> ${log.Amount}</p>
               <p><strong>Date:</strong> {new Date(log.Date).toLocaleDateString()}</p>
             </div>

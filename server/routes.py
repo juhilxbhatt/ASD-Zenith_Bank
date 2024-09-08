@@ -27,21 +27,21 @@ transaction_logs_collection = db["TransactionLog"]
 
 hardcoded_user_id = ObjectId("66dba291464bf428046deaf2") # Replace this with the user ID from Login
 hardcoded_transaction_id = ObjectId("66daff5b464bf428046deaf0") # Replace this with the trasnaction ID from Login
+hardcoded_account_id = ObjectId("66dc239b9e87d6406371e602") # Replace this with the account ID from Login
+
+from datetime import datetime
 
 # Route to create a new account
 @api.route('/api/create_account', methods=['POST'])
 def create_account():
-    print("Create Account Called")  # Debug: Endpoint is being called
     try:
         # Get data from the POST request
         data = request.get_json()
-        print("Received Data:", data)  # Debug: Print the incoming data
 
         # Check if the user exists in the 'users' collection
         user = users_collection.find_one({"_id": hardcoded_user_id})
         
         if not user:
-            print("User not found!")  # Debug: If user doesn't exist
             return jsonify({"error": "User not found!"}), 404
 
         # Prepare the account data
@@ -55,21 +55,48 @@ def create_account():
 
         # Insert the new account into the 'accounts' collection
         result = accounts_collection.insert_one(new_account)
-        print("Account Inserted, ID:", result.inserted_id)  # Debug: Print inserted account ID
 
         # Return a success message with the inserted ID
         return jsonify({"message": "Account created successfully!", "account_id": str(result.inserted_id)}), 200
 
     except Exception as e:
-        print("Error Occurred:", e)  # Debug: Print any exceptions encountered
         return jsonify({"error": str(e)}), 500
 
 # Route to get All Transaction Logs
 @api.route('/api/transaction_logs', methods=['GET'])
 def get_transaction_logs():
     try:
-        # Fetch all transaction logs from the database
-        transaction_logs = list(transaction_logs_collection.find({}, {'_id': 0}))  # Exclude MongoDB _id for simplicity
+        # new transaction log
+        #new_transaction_log = {
+        #    "UserID": "66dba291464bf428046deaf2",
+        #    "AccountID": "66daff5b464bf428046deaf0",
+        #    "CategoryID": "Water Bill",
+        #    "Amount": 100.00,
+        #    "Date": datetime.now(),  # Store date as an ISODate
+        #    "Description": "Payment"
+        #}
+
+        # Insert into MongoDB
+        #result = transaction_logs_collection.insert_one(new_transaction_log)
+        #print(result)
+
+        # Extract UserID from query parameters
+        user_id = hardcoded_user_id
+        if not user_id:
+            print("UserID not provided in the request")  # Debugging message
+            return jsonify({"error": "UserID is required"}), 400
+
+        # Fetch only the Amount, Date, and Description for the specific UserID
+        transaction_logs = list(transaction_logs_collection.find(
+            {"UserID": user_id},
+            {'Amount': 1, 'Date': 1, 'Description': 1, '_id': 0}
+        ))  # Project specific fields
+
+        if not transaction_logs:
+            return jsonify({"message": "No transaction logs found for this UserID"}), 404
+
         return jsonify(transaction_logs), 200
+
     except Exception as e:
+        print(f"Error fetching transaction logs: {e}")  # Debugging error message
         return jsonify({"error": str(e)}), 500
