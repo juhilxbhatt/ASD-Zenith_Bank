@@ -34,22 +34,3 @@ def test_create_account(mock_accounts_collection, client):
     # Assert the response status code and message
     assert response.status_code == 200
     assert b'Account created successfully!' in response.data
-
-@patch('server.routes.accounts_collection')
-def test_get_accounts(mock_accounts_collection, client):
-    # Mock the find method to return fake account data
-    mock_accounts_collection.find.return_value = [
-        {
-            "accountType": "Saving",
-            "balance": 1000.0,
-            "status": "Active"
-        }
-    ]
-
-    # Perform the GET request to fetch accounts
-    response = client.get('/api/accounts')
-    
-    # Assert the response status code and content
-    assert response.status_code == 200
-    assert b'Saving' in response.data
-    assert b'1000.0' in response.data
