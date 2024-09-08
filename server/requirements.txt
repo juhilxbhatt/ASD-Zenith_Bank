@@ -2,3 +2,5 @@ Flask
 pymongo
 flask-cors
 python-dotenv
+pytest
+pytest-flask

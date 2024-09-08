@@ -1,19 +1,32 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- main
+  branches:
+    include:
+      - main  # Set to your default branch
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'  # You can also use windows-latest if you prefer
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x'  # Specify your Python version
+    addToPath: true
 
 - script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    python -m venv venv
+    source venv/bin/activate  # Use venv\Scripts\activate if on Windows
+    pip install -r server/requirements.txt  # Install your Flask app dependencies
+    pip install pytest pytest-flask         # Install testing dependencies
+  displayName: 'Install dependencies'
+
+- script: |
+    source venv/bin/activate  # Activate virtual environment (or venv\Scripts\activate on Windows)
+    pytest tests/ --junitxml=junit/test-results.xml  # Run tests and output results in JUnit format
+  displayName: 'Run tests'
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: 'junit/test-results.xml'
+    failTaskOnFailedTests: true
+  displayName: 'Publish test results'
