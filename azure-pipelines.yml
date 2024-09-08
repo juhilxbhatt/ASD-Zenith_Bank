@@ -1,7 +1,7 @@
 trigger:
   branches:
     include:
-      - main  # Set to your default branch
+      - '*'  # Set to your default branch
 
 pool:
   vmImage: 'ubuntu-latest'  # You can also use windows-latest if you prefer
