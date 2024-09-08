@@ -118,4 +118,43 @@ body {
   .create-account form {
     max-width: 600px;
     margin: 0 auto;
-  }  
+  } 
+  
+/* Transaction Logs */
+.transaction-logs {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.logs-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.log-item {
+  padding: 15px;
+  margin-bottom: 10px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.log-item:hover {
+  background-color: #f1f1f1;
+}
+
+.log-details {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-left: 3px solid #0077b6;
+}
+
+.log-details p {
+  margin: 5px 0;
+}

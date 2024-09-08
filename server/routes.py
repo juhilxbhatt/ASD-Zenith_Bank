@@ -23,6 +23,7 @@ client = MongoClient(uri, server_api=ServerApi('1'))
 db = client["ZenithBank"]
 accounts_collection = db["Account"]
 users_collection = db["User"]
+transaction_logs_collection = db["TransactionLog"]
 
 hardcoded_user_id = ObjectId("66dba291464bf428046deaf2") # Replace this with the user ID from Login
 hardcoded_transaction_id = ObjectId("66daff5b464bf428046deaf0") # Replace this with the trasnaction ID from Login
@@ -61,4 +62,14 @@ def create_account():
 
     except Exception as e:
         print("Error Occurred:", e)  # Debug: Print any exceptions encountered
+        return jsonify({"error": str(e)}), 500
+
+# Route to get All Transaction Logs
+@api.route('/api/transaction_logs', methods=['GET'])
+def get_transaction_logs():
+    try:
+        # Fetch all transaction logs from the database
+        transaction_logs = list(transaction_logs_collection.find({}, {'_id': 0}))  # Exclude MongoDB _id for simplicity
+        return jsonify(transaction_logs), 200
+    except Exception as e:
         return jsonify({"error": str(e)}), 500

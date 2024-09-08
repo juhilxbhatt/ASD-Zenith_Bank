@@ -9,6 +9,10 @@ function Home() {
       <Link to="/create-account">
         <button>Create New Account</button>
       </Link>
+
+      <Link to="/TransactionLogs">
+        <button>View Transaction Logs</button>
+      </Link>
     </div>
   );
 }
