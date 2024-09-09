@@ -40,7 +40,6 @@ def create_account():
 
         # Check if the user exists in the 'users' collection
         user = users_collection.find_one({"_id": hardcoded_user_id})
-        
         if not user:
             return jsonify({"error": "User not found!"}), 404
 

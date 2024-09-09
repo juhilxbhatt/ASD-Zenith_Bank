@@ -14,7 +14,7 @@ function CreateAccount() {
     };
 
     try {
-      const response = await axios.post('/api/create_account', newAccount);
+      const response = await axios.post('/api/create_account', newAccount); // Send a POST request to the server
       if (response.status === 200) {
         alert('Account created successfully!');
       }
