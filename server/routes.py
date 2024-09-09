@@ -30,17 +30,13 @@ hardcoded_transaction_id = ObjectId("66daff5b464bf428046deaf0") # Replace this w
 # Route to create a new account
 @api.route('/api/create_account', methods=['POST'])
 def create_account():
-    print("Create Account Called")  # Debug: Endpoint is being called
     try:
         # Get data from the POST request
         data = request.get_json()
-        print("Received Data:", data)  # Debug: Print the incoming data
 
         # Check if the user exists in the 'users' collection
         user = users_collection.find_one({"_id": hardcoded_user_id})
-        
         if not user:
-            print("User not found!")  # Debug: If user doesn't exist
             return jsonify({"error": "User not found!"}), 404
 
         # Prepare the account data
@@ -54,7 +50,6 @@ def create_account():
 
         # Insert the new account into the 'accounts' collection
         result = accounts_collection.insert_one(new_account)
-        print("Account Inserted, ID:", result.inserted_id)  # Debug: Print inserted account ID
 
         # Return a success message with the inserted ID
         return jsonify({"message": "Account created successfully!", "account_id": str(result.inserted_id)}), 200
