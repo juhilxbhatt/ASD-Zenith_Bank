@@ -1,60 +1,65 @@
-import React, { useState } from 'react';
-import { Button, Box, Container, Typography, MenuItem, Select, InputLabel, FormControl, Paper } from '@mui/material';
-import { Line } from 'react-chartjs-2';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Button, Box, Container, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Grid, Divider } from '@mui/material';
+import { Line, Pie } from 'react-chartjs-2';
 import { useNavigate } from 'react-router-dom';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
 
-// Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+// Mock months (can be fetched dynamically)
+const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-// Mock data for transactions
-const allTransactions = [
-  { type: 'deposit', amount: 100, category: 'Savings', date: '2023-01-15' },
-  { type: 'withdrawal', amount: 50, category: 'Groceries', date: '2023-02-05' },
-  { type: 'deposit', amount: 200, category: 'Salary', date: '2023-02-20' },
-  { type: 'withdrawal', amount: 75, category: 'Entertainment', date: '2023-03-10' },
-];
-
-function MonthlyStatement() {
-  const [transactions, setTransactions] = useState(allTransactions);
-  const [sortBy, setSortBy] = useState('');
+function MonthlyStatement({ userId }) {
+  const [selectedMonth, setSelectedMonth] = useState('January');
+  const [transactions, setTransactions] = useState([]);
   const navigate = useNavigate();
 
-  const handleSortChange = (e) => {
-    const value = e.target.value;
-    setSortBy(value);
-
-    const sortedTransactions = [...transactions].sort((a, b) => {
-      if (value === 'date') {
-        return new Date(a.date) - new Date(b.date);
-      }
-      if (value === 'amount') {
-        return a.amount - b.amount;
-      }
-      return 0;
-    });
-
-    setTransactions(sortedTransactions);
+  // Fetch transactions from MongoDB via Flask backend
+  const fetchTransactions = async (month) => {
+    try {
+      const response = await axios.get(`/api/user/${userId}/transactions`, {
+        params: { month }
+      });
+      setTransactions(response.data);
+    } catch (error) {
+      console.error('Error fetching transactions', error);
+    }
   };
 
-  // Line chart data for visualization
-  const chartData = {
+  useEffect(() => {
+    fetchTransactions(selectedMonth); // Fetch transactions when the month changes
+  }, [selectedMonth]);
+
+  // Calculate totals for income and expenses
+  const totalIncome = transactions.filter((txn) => txn.type === 'deposit').reduce((acc, txn) => acc + txn.amount, 0);
+  const totalExpenses = transactions.filter((txn) => txn.type === 'withdrawal').reduce((acc, txn) => acc + txn.amount, 0);
+
+  // Line chart data for monthly transaction overview
+  const lineChartData = {
     labels: transactions.map((txn) => txn.date),
     datasets: [
       {
-        label: 'Amount',
+        label: 'Income',
+        data: transactions.filter((txn) => txn.type === 'deposit').map((txn) => txn.amount),
+        borderColor: 'rgba(54, 162, 235, 1)',
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        fill: true,
+      },
+      {
+        label: 'Expenses',
+        data: transactions.filter((txn) => txn.type === 'withdrawal').map((txn) => txn.amount),
+        borderColor: 'rgba(255, 99, 132, 1)',
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        fill: true,
+      },
+    ],
+  };
+
+  // Pie chart data for transaction categories breakdown
+  const pieChartData = {
+    labels: [...new Set(transactions.map((txn) => txn.category))],
+    datasets: [
+      {
         data: transactions.map((txn) => txn.amount),
-        borderColor: 'rgba(75,192,192,1)',
-        backgroundColor: 'rgba(75,192,192,0.2)',
+        backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(75, 192, 192, 0.6)'],
       },
     ],
   };
@@ -70,46 +75,68 @@ function MonthlyStatement() {
         Go Back
       </Button>
 
-      {/* Sort Options */}
+      {/* Month Selection */}
       <FormControl fullWidth sx={{ mb: 3 }}>
-        <InputLabel>Sort By</InputLabel>
-        <Select value={sortBy} onChange={handleSortChange}>
-          <MenuItem value="date">Date</MenuItem>
-          <MenuItem value="amount">Amount</MenuItem>
+        <InputLabel>Select Month</InputLabel>
+        <Select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}>
+          {months.map((month) => (
+            <MenuItem key={month} value={month}>
+              {month}
+            </MenuItem>
+          ))}
         </Select>
       </FormControl>
 
-      {/* Display Transaction Data */}
-      <Paper sx={{ p: 2, mb: 4 }}>
-        <Typography variant="h6">Transactions:</Typography>
-        <ul>
-          {transactions.map((txn, index) => (
-            <li key={index}>
-              {txn.type} - ${txn.amount} on {txn.date}
-            </li>
-          ))}
-        </ul>
-      </Paper>
-
-      {/* Display Total Deposits and Withdrawals */}
+      {/* Transaction Summary */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h6">
-          Total Deposits: $
-          {transactions.filter((txn) => txn.type === 'deposit').reduce((acc, txn) => acc + txn.amount, 0)}
-        </Typography>
-        <Typography variant="h6">
-          Total Withdrawals: $
-          {transactions.filter((txn) => txn.type === 'withdrawal').reduce((acc, txn) => acc + txn.amount, 0)}
-        </Typography>
+        <Typography variant="h6">Summary for {selectedMonth}:</Typography>
+        <Typography variant="body1">Total Income: ${totalIncome}</Typography>
+        <Typography variant="body1">Total Expenses: ${totalExpenses}</Typography>
       </Box>
 
-      {/* Data Visualization - Line Chart */}
-      <Box sx={{ mb: 4 }}>
+      <Divider sx={{ my: 3 }} />
+
+      {/* Charts Section */}
+      <Grid container spacing={4}>
+        <Grid item xs={12} md={6}>
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Income vs Expenses
+            </Typography>
+            <Line data={lineChartData} />
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Transaction Breakdown by Category
+            </Typography>
+            <Pie data={pieChartData} />
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <Divider sx={{ my: 3 }} />
+
+      {/* Transaction Table */}
+      <Paper sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
-          Transaction Overview:
+          Detailed Transactions:
         </Typography>
-        <Line data={chartData} />
-      </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {transactions.map((txn, index) => (
+            <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body2">
+                {txn.date} - {txn.category} - {txn.type === 'deposit' ? 'Income' : 'Expense'}
+              </Typography>
+              <Typography variant="body2" color={txn.type === 'deposit' ? 'primary' : 'secondary'}>
+                ${txn.amount}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Paper>
     </Container>
   );
 }
