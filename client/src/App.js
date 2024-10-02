@@ -1,25 +1,42 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import Home from './Home';
 import CreateAccount from './CreateAccount';
 import TransactionLogs from './TransactionLogs';
+import MonthlyStatement from './MonthlyStatement';
+import TransferDeposit from './TransferDeposit';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+});
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          {/* Route for the Home page */}
-          <Route path="/" element={<Home />} />
-          
-          {/* Route for the Create Account page */}
-          <Route path="/create-account" element={<CreateAccount />} />
-
-          {/* Route for the Transaction Logs Page*/}
-          <Route path="/TransactionLogs" element={<TransactionLogs />} />
-        </Routes>
-      </div>
-    </Router>
+    <ThemeProvider theme={theme}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <Router>
+          <div className="App">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/create-account" element={<CreateAccount />} />
+              <Route path="/TransactionLogs" element={<TransactionLogs />} />
+              <Route path="/MonthlyStatement" element={<MonthlyStatement />} />
+              <Route path="/TransferDeposit" element={<TransferDeposit />} />
+            </Routes>
+          </div>
+        </Router>
+      </LocalizationProvider>
+    </ThemeProvider>
   );
 }
 
