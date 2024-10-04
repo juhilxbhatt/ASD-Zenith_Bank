@@ -4,6 +4,22 @@ import { Button, Box, Container, Typography, FormControl, InputLabel, Select, Me
 import { Line, Pie } from 'react-chartjs-2';
 import { useNavigate } from 'react-router-dom';
 
+// Import necessary components from Chart.js
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js';
+
+// Register necessary components for Chart.js
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
+
 // Mock months (can be fetched dynamically)
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -16,7 +32,7 @@ function MonthlyStatement({ userId }) {
   const fetchTransactions = async (month) => {
     try {
       const response = await axios.get(`/api/user/${userId}/transactions`, {
-        params: { month }
+        params: { month },
       });
       setTransactions(response.data);
     } catch (error) {
