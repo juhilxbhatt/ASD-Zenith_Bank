@@ -1,9 +1,11 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify, request 
 from flask_cors import CORS
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from dotenv import load_dotenv
+from datetime import datetime  # Added datetime for date handling
+from routes import api
 
 # Load environment variables from .env file
 load_dotenv()
@@ -27,7 +29,6 @@ except Exception as e:
     print(f"Error connecting to MongoDB: {e}")
 
 # Define routes
-from routes import api
 app.register_blueprint(api)
 
 if __name__ == "__main__":

@@ -1,36 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import Home from './Home';
+import CreateAccount from './CreateAccount';
+import TransactionLogs from './TransactionLogs';
+import MonthlyStatement from './MonthlyStatement';
+import TransferDeposit from './TransferDeposit';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+});
 
 function App() {
-  // State to hold the fetched data from the backend
-  const [data, setData] = useState(null);
-
-  // useEffect hook to fetch data
-  useEffect(() => {
-    // Make a GET request to the backend API
-    axios.get('/api/data')
-      .then(response => {
-        setData(response.data);
-      })
-      .catch(error => {
-        console.error("There was an error fetching data!", error);
-      });
-  }, []);
-
   return (
-    <div className="App">
-      <h1>Zenith Bank</h1>
-      {data ? (
-        <div>
-          <h2>Data from Flask:</h2>
-          {/* Display the fetched data as a formatted JSON string */}
-          <pre>{JSON.stringify(data, null, 2)}</pre>
-        </div>
-      ) : (
-        // Show a loading message while data is being fetched
-        <p>Loading data...</p>
-      )}
-    </div>
+    <ThemeProvider theme={theme}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <Router>
+          <div className="App">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/create-account" element={<CreateAccount />} />
+              <Route path="/TransactionLogs" element={<TransactionLogs />} />
+              <Route path="/MonthlyStatement" element={<MonthlyStatement />} />
+              <Route path="/TransferDeposit" element={<TransferDeposit />} />
+            </Routes>
+          </div>
+        </Router>
+      </LocalizationProvider>
+    </ThemeProvider>
   );
 }
 
