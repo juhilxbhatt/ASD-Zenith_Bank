@@ -32,6 +32,33 @@ hardcoded_account_id = ObjectId("66dc239b9e87d6406371e602") # Replace this with 
 
 from datetime import datetime
 
+# Route to handle user login
+@api.route('/api/LoginPage', methods=['POST'])
+def login():
+    try:
+        # Get data from the POST request
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+
+        if not username or not password:
+            return jsonify({"error": "Username and password are required!"}), 400
+
+        # Find the user in the 'users' collection
+        user = users_collection.find_one({"username": username})
+        if not user:
+            return jsonify({"error": "Invalid username or password!"}), 401
+
+        # Check if the password matches
+        if not check_password_hash(user['password'], password):
+            return jsonify({"error": "Invalid username or password!"}), 401
+
+        # Return a success message
+        return jsonify({"message": "Login successful!", "user_id": str(user['_id'])}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # Route to create a new account
 @api.route('/api/create_account', methods=['POST'])
 def create_account():
