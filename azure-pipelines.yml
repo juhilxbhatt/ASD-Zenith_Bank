@@ -14,6 +14,7 @@ steps:
     addToPath: true
 
 - script: |
+    echo "Running Backend Tests by Joseph Jello"
     python -m venv venv
     source venv/bin/activate  # For Windows, use `venv\Scripts\activate`
     pip install -r server/requirements.txt
@@ -21,6 +22,7 @@ steps:
   displayName: 'Install Python dependencies'
 
 - script: |
+    echo "Executing Backend Tests - Joseph Jello"
     source venv/bin/activate  # For Windows, use `venv\Scripts\activate`
     export PYTHONPATH=$(pwd)  # Add the root directory to PYTHONPATH
     pytest server/tests/ --junitxml=junit/test-results.xml
@@ -33,6 +35,7 @@ steps:
   displayName: 'Install Node.js'
 
 - script: |
+    echo "Running Frontend Tests by Joseph Jello"
     cd client  # Navigate to the frontend directory
     npm install
     npm test -- --ci --reporters=jest-junit --outputFile=results/junit/test-results.xml
@@ -44,3 +47,7 @@ steps:
     testResultsFiles: 'results/junit/test-results.xml'
     failTaskOnFailedTests: true
   displayName: 'Publish test results'
+
+- script: |
+    echo "Pipeline completed by Joseph Jello"
+  displayName: 'Completion Log'
