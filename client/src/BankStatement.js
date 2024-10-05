@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Box, Container, Typography, Button, CircularProgress, TextField } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { Line, Bar } from 'react-chartjs-2'; // Import Chart.js components
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import jsPDF from 'jspdf'; // Import jsPDF
+import html2canvas from 'html2canvas'; // Import html2canvas
 
 // Register chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
@@ -18,6 +20,12 @@ function BankStatement() {
   const [monthlySpending, setMonthlySpending] = useState({});
   const [deposits, setDeposits] = useState({});
   const [withdrawals, setWithdrawals] = useState({});
+  
+  // State to manage chart visibility
+  const [chartsVisible, setChartsVisible] = useState(false);
+
+  // Reference to the component for PDF generation
+  const pdfRef = useRef();
 
   // Function to fetch transaction logs
   const fetchTransactionLogs = (startDate = '', endDate = '') => {
@@ -122,6 +130,40 @@ function BankStatement() {
     }
   };
 
+  // Toggle charts visibility
+  const toggleChartsVisibility = () => {
+    setChartsVisible((prev) => !prev);
+  };
+
+  // Function to download the page as a PDF
+  const downloadPDF = () => {
+    const input = pdfRef.current;
+
+    html2canvas(input, { scale: 2 }).then((canvas) => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF();
+      const imgWidth = 190; // Adjust width as needed
+      const pageHeight = pdf.internal.pageSize.height;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+
+      let position = 0;
+
+      // Add the image to PDF
+      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save('bank_statement.pdf');
+    });
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -149,10 +191,17 @@ function BankStatement() {
         color: '#fff',
       }}
     >
-      <Container maxWidth="md">
+      <Container maxWidth="md" ref={pdfRef}>
         <Typography variant="h3" align="center" gutterBottom sx={{ fontWeight: 'bold' }}>
           Bank Statement
         </Typography>
+
+        {/* Button to download PDF */}
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Button variant="contained" color="primary" onClick={downloadPDF}>
+            Download PDF
+          </Button>
+        </Box>
 
         {/* Display user and account details */}
         <Box
@@ -190,7 +239,8 @@ function BankStatement() {
           <Typography variant="h5" gutterBottom>
             Transaction Logs
           </Typography>
-                  {/* Date filter section */}
+
+        {/* Date filter section */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
           <TextField
             label="Start Date"
@@ -216,6 +266,7 @@ function BankStatement() {
             Filter
           </Button>
         </Box>
+
           {statementData.TransactionLogs.length === 0 ? (
             <Typography>No transaction logs found.</Typography>
           ) : (
@@ -243,20 +294,28 @@ function BankStatement() {
             boxShadow: 4,
           }}
         >
-          <Typography variant="h5" gutterBottom>
-            Deposits
-          </Typography>
-          <Bar data={deposits} options={{ responsive: true }} />
+          <Button variant="contained" color="primary" onClick={toggleChartsVisibility}>
+            {chartsVisible ? 'Hide Charts' : 'Show Charts'}
+          </Button>
 
-          <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
-            Withdrawals
-          </Typography>
-          <Bar data={withdrawals} options={{ responsive: true }} />
+          {chartsVisible && (
+            <>
+              <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
+                Deposits
+              </Typography>
+              <Bar data={deposits} options={{ responsive: true }} />
 
-          <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
-            Monthly Spending
-          </Typography>
-          <Line data={monthlySpending} options={{ responsive: true }} />
+              <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
+                Withdrawals
+              </Typography>
+              <Bar data={withdrawals} options={{ responsive: true }} />
+
+              <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
+                Monthly Spending
+              </Typography>
+              <Line data={monthlySpending} options={{ responsive: true }} />
+            </>
+          )}
         </Box>
 
         <Box sx={{ mt: 6, textAlign: 'center' }}>
