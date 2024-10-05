@@ -27,14 +27,14 @@ steps:
     source venv/bin/activate  # For Windows, use `venv\Scripts\activate`
     export PYTHONPATH=$PYTHONPATH:$(pwd)/server  # Add the server directory to the Python path
     ls server/tests  # Debugging: List test files
-    pytest server/tests/ --junitxml=junit/test-results.xml  # Ensure pytest runs tests in the correct folder
+    pytest server/tests/ --junitxml=junit/test-results.xml  # Run the tests
   displayName: 'Run backend tests'
 
 # Frontend Node.js Steps
 - task: NodeTool@0
   inputs:
-    versionSpec: '14.x'  # Use Node.js version 14.x
-  displayName: 'Install Node.js'
+    versionSpec: '18.x'  # Update to use Node.js version 18.x
+  displayName: 'Install Node.js 18.x'
 
 - script: |
     echo "Running Frontend Tests by Joseph Jello"
