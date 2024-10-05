@@ -25,7 +25,7 @@ steps:
     echo "Executing Backend Tests - Joseph Jello"
     source venv/bin/activate  # For Windows, use `venv\Scripts\activate`
     export PYTHONPATH=$(pwd)  # Add the root directory to PYTHONPATH
-    pytest server/tests/ --junitxml=junit/test-results.xml
+    pytest server/tests/ --junitxml=junit/test-results.xml  # Explicitly mention the tests directory
   displayName: 'Run backend tests'
 
 # Frontend Node.js Steps
