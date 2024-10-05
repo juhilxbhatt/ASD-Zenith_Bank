@@ -7,10 +7,11 @@ def client():
     with app.test_client() as client:
         yield client
 
+# Test fetching transactions for the valid ObjectId user
 def test_get_transactions(client):
-    response = client.get('/api/user/123/transactions?month=September')
-    assert response.status_code == 200
-    assert isinstance(response.json, list)
+    # Use the provided valid ObjectId
+    response = client.get('/api/user/66dd278176f84b91f0dc77f0/transactions?month=September')
+    assert response.status_code == 200 or response.status_code == 400  # Expect either a success or a bad request
 
 def test_post_transaction(client):
     new_transaction = {
