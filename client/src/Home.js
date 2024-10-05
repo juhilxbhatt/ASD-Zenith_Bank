@@ -152,6 +152,33 @@ function Home() {
               </CardActions>
             </StyledCard>
           </Grid>
+
+          {/* Bank Statement */}
+          <Grid item xs={12} sm={6} md={3}>
+            <StyledCard sx={{ textAlign: 'center', borderRadius: '15px', boxShadow: 4 }}>
+              <CardContent>
+                <ReceiptIcon fontSize="large" sx={{ color: '#673ab7' }} />
+                <Typography variant="h5" sx={{ mt: 2, mb: 2 }}>
+                  Bank Statement
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Download your custom bank statements.
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Link to="/BankStatement" style={{ textDecoration: 'none', width: '100%' }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    sx={{ borderRadius: '0 0 15px 15px', py: 2 }}
+                  >
+                    View Statements
+                  </Button>
+                </Link>
+              </CardActions>
+            </StyledCard>
+          </Grid>
         </Grid>
       </Container>
     </Box>
