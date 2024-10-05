@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Container, Typography, Button, CircularProgress, TextField } from '@mui/material';
 import { Link } from 'react-router-dom';
+import { Line, Bar } from 'react-chartjs-2'; // Import Chart.js components
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js';
+
+// Register chart.js components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 function BankStatement() {
   const [statementData, setStatementData] = useState(null);
@@ -9,12 +14,16 @@ function BankStatement() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  // Data for charts
+  const [monthlySpending, setMonthlySpending] = useState({});
+  const [deposits, setDeposits] = useState({});
+  const [withdrawals, setWithdrawals] = useState({});
+
   // Function to fetch transaction logs
   const fetchTransactionLogs = (startDate = '', endDate = '') => {
     setLoading(true);
     let url = '/api/transaction_logs';
 
-    // Add query parameters if startDate and endDate are provided
     if (startDate && endDate) {
       url += `?start_date=${startDate}&end_date=${endDate}`;
     }
@@ -26,6 +35,7 @@ function BankStatement() {
           setError(data.error);
         } else {
           setStatementData(data);
+          categorizeTransactions(data.TransactionLogs); // Categorize transactions for charts
         }
         setLoading(false);
       })
@@ -33,6 +43,69 @@ function BankStatement() {
         setError("Failed to fetch data.");
         setLoading(false);
       });
+  };
+
+  const categorizeTransactions = (logs) => {
+    const depositsData = [];
+    const withdrawalsData = [];
+    const spendingData = {};
+
+    logs.forEach((log) => {
+      const logDate = new Date(log.Date);
+      const month = logDate.toLocaleString('default', { month: 'long' });
+
+      if (!spendingData[month]) {
+        spendingData[month] = 0;
+      }
+
+      if (log.Amount > 0) {
+        depositsData.push(log.Amount);
+      } else {
+        withdrawalsData.push(Math.abs(log.Amount)); // Store withdrawals as positive values
+      }
+
+      // Accumulate spending by month
+      spendingData[month] += Math.abs(log.Amount);
+    });
+
+    setDeposits({
+      labels: depositsData.map((_, idx) => `Transaction ${idx + 1}`),
+      datasets: [
+        {
+          label: 'Deposits',
+          data: depositsData,
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1,
+        },
+      ],
+    });
+
+    setWithdrawals({
+      labels: withdrawalsData.map((_, idx) => `Transaction ${idx + 1}`),
+      datasets: [
+        {
+          label: 'Withdrawals',
+          data: withdrawalsData,
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          borderColor: 'rgba(255, 99, 132, 1)',
+          borderWidth: 1,
+        },
+      ],
+    });
+
+    setMonthlySpending({
+      labels: Object.keys(spendingData),
+      datasets: [
+        {
+          label: 'Monthly Spending',
+          data: Object.values(spendingData),
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1,
+        },
+      ],
+    });
   };
 
   // Initial fetch of all transaction logs
@@ -111,6 +184,7 @@ function BankStatement() {
             borderRadius: '10px',
             p: 3,
             boxShadow: 4,
+            mb: 4,
           }}
         >
           <Typography variant="h5" gutterBottom>
@@ -157,6 +231,32 @@ function BankStatement() {
               ))}
             </ul>
           )}
+        </Box>
+
+        {/* Charts for deposits, withdrawals, and monthly spending */}
+        <Box
+          sx={{
+            backgroundColor: '#fff',
+            color: '#000',
+            borderRadius: '10px',
+            p: 3,
+            boxShadow: 4,
+          }}
+        >
+          <Typography variant="h5" gutterBottom>
+            Deposits
+          </Typography>
+          <Bar data={deposits} options={{ responsive: true }} />
+
+          <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
+            Withdrawals
+          </Typography>
+          <Bar data={withdrawals} options={{ responsive: true }} />
+
+          <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
+            Monthly Spending
+          </Typography>
+          <Line data={monthlySpending} options={{ responsive: true }} />
         </Box>
 
         <Box sx={{ mt: 6, textAlign: 'center' }}>
