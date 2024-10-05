@@ -12,9 +12,10 @@ steps:
   inputs:
     versionSpec: '3.x'  # Specify the Python version you want to use
     addToPath: true
+  displayName: 'Set up Python 3.x'
 
 - script: |
-    echo "Running Backend Tests by Joseph Jello"
+    echo "Setting up Python virtual environment - Joseph Jello"
     python -m venv venv
     source venv/bin/activate  # For Windows, use `venv\Scripts\activate`
     pip install -r server/requirements.txt
@@ -24,8 +25,8 @@ steps:
 - script: |
     echo "Executing Backend Tests - Joseph Jello"
     source venv/bin/activate  # For Windows, use `venv\Scripts\activate`
-    export PYTHONPATH=$(pwd)  # Add the root directory to PYTHONPATH
-    pytest server/tests/ --junitxml=junit/test-results.xml  # Explicitly mention the tests directory
+    ls server/tests  # Debugging: List test files
+    pytest server/tests/ --junitxml=junit/test-results.xml  # Ensure pytest runs tests in correct folder
   displayName: 'Run backend tests'
 
 # Frontend Node.js Steps
@@ -36,15 +37,16 @@ steps:
 
 - script: |
     echo "Running Frontend Tests by Joseph Jello"
-    cd client  # Navigate to the frontend directory
+    cd client  # Navigate to the frontend directory where package.json is located
     npm install
     npm test -- --ci --reporters=jest-junit --outputFile=results/junit/test-results.xml
   displayName: 'Run frontend tests'
 
+# Publish Test Results (for both backend and frontend)
 - task: PublishTestResults@2
   inputs:
     testResultsFormat: 'JUnit'
-    testResultsFiles: 'results/junit/test-results.xml'
+    testResultsFiles: '**/junit/test-results.xml'  # Look for JUnit XML files in all folders
     failTaskOnFailedTests: true
   displayName: 'Publish test results'
 
