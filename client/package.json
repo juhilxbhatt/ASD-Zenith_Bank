@@ -25,7 +25,7 @@
     "scripts": {
         "start": "react-scripts start",
         "build": "react-scripts build",
-        "test": "react-scripts test --testPathPattern=src/tests --coverage --ci",
+        "test": "react-scripts test --ci",
         "eject": "react-scripts eject"
     },
     "proxy": "http://127.0.0.1:5000",
