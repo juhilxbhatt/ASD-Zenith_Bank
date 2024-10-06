@@ -35,7 +35,7 @@ steps:
 - script: |
     cd client
     npm install
-    npm test -- --coverage --ci --reporters=jest-junit --outputFile=../junit/test-results-react.xml
+    npm run test -- --all --coverage --ci --reporters=jest-junit --outputFile=../junit/test-results-react.xml
   displayName: 'Juhil React tests'
 
 # Publish test results
