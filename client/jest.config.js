@@ -1,8 +1,8 @@
 module.exports = {
-  roots: ['<rootDir>/src/'],
-  testMatch: ['**/tests/*.test.js'],
   transform: {
-    '^.+\\.(js|jsx)$': 'babel-jest',
+    '^.+\\.jsx?$': 'babel-jest',
   },
-  moduleFileExtensions: ['js', 'jsx'],
+  moduleNameMapper: {
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy', // For handling CSS imports
+  },
 };
