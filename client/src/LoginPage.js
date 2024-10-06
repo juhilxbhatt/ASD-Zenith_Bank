@@ -1,46 +1,83 @@
-// src/components/LoginPage.js
 import React, { useState } from 'react';
 import './LoginPage.css';
 
 const LoginPage = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle login logic here, e.g., API call
-    console.log('Username:', username);
-    console.log('Password:', password);
-  };
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-  return (
-    <div className="login-container">
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="username">Username</label>
-          <input
-            type="text"
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
+        try {
+            const response = await fetch('/api/LoginPage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                setSuccess('Login successful! Redirecting...');
+                setError('');
+                // Redirect after a short delay
+                setTimeout(() => {
+                    window.location.href = '/dashboard'; // Change to your desired redirect
+                }, 2000);
+            } else {
+                if (result.error) {
+                    setError(result.error);
+                } else {
+                    setError('Invalid credentials, please try again.');
+                }
+                setSuccess('');
+            }
+        } catch (error) {
+            setError('Something went wrong, please try again.');
+            setSuccess('');
+        }
+    };
+
+    return (
+        <div>
+            <nav className="navbar">
+                <div className="navbar-content">
+                    <button className="navbar-button" onClick={() => window.location.href = '/login'}>
+                        Zenith Bank
+                    </button>
+                    <div className="login-inputs">
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Email"
+                            required
+                        />
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Password"
+                            required
+                        />
+                        <button className="login-button" onClick={handleSubmit}>Login</button>
+                        <span className="register-text" onClick={() => window.location.href = '/create-user'}>
+                            Don't have an account? Register here!
+                        </span>
+                    </div>
+                </div>
+            </nav>
+
+            <div className="login-container">
+                {error && <p className="error">{error}</p>}
+                {success && <p className="success">{success}</p>}
+            </div>
         </div>
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Login</button>
-      </form>
-    </div>
-  );
+    );
 };
 
 export default LoginPage;

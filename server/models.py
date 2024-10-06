@@ -4,7 +4,8 @@ import datetime
 
 # User Model
 class User(Document):
-    name = StringField(required=True, max_length=100)
+    first_name = StringField(required=True, max_length=25)
+    last_name = StringField(required=True, max_length=25)
     password = StringField(required=True, min_length=6)
     email = StringField(required=True, unique=True)
     address = StringField()
@@ -147,3 +148,4 @@ class BankStatement(Document):
             "date": self.date.strftime('%Y-%m-%d %H:%M:%S'),
             "description": self.description
         }
+        

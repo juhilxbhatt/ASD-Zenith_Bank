@@ -4,27 +4,22 @@ import Home from './Home';
 import CreateAccount from './CreateAccount';
 import TransactionLogs from './TransactionLogs';
 import LoginPage from './LoginPage';
+import CreateUser from './CreateUser';
 
-function App() {
-  return (
-    <Router>
-      <div className="App">
-        <Routes>
-          {/* Route for the Home page */}
-          <Route path="/" element={<Home />} />
-          
-          {/* Route for the Create Account page */}
-          <Route path="/create-account" element={<CreateAccount />} />
-
-          {/* Route for the Transaction Logs Page*/}
-          <Route path="/TransactionLogs" element={<TransactionLogs />} />
-
-          {/* Route for Login Page*/}
-          <Route path="/LoginPage" element={<LoginPage />} />
-        </Routes>
-      </div>
-    </Router>
-  );
-}
+const App = () => {
+    return (
+        <Router>
+            <div className="App">
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/create-account" element={<CreateAccount />} />
+                    <Route path="/TransactionLogs" element={<TransactionLogs />} />
+                    <Route path="/login-page" element={<LoginPage />} />
+                    <Route path="/create-user" element={<CreateUser />} />
+                </Routes>
+            </div>
+        </Router>
+    );
+};
 
 export default App;

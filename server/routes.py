@@ -4,6 +4,7 @@ from pymongo.server_api import ServerApi
 import os
 from dotenv import load_dotenv
 from bson.objectid import ObjectId
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Load environment variables
 load_dotenv()
@@ -34,29 +35,61 @@ from datetime import datetime
 # Route to handle user login
 @api.route('/api/LoginPage', methods=['POST'])
 def login():
+    data = request.get_json()
+    email = data.get('email')  # Capture email from request
+    password = data.get('password')
+
+    # Find the user by email
+    user = users_collection.find_one({'email': email})
+
+    if not user:
+        return jsonify({'error': 'User not found'}), 404  # User not found
+
+    # Check the password
+    if check_password_hash(user['password'], password):
+        return jsonify({
+            'message': 'Login successful', 
+            'user': {
+                'first_name': user['first_name'],
+                'last_name': user['last_name'], 
+                'email': user['email'], 
+                'address': user.get('address', 'N/A')
+            }
+        }), 200  # Login successful
+    else:
+        return jsonify({'error': 'Invalid password'}), 401  # Invalid password
+
+@api.route('/api/create_user', methods=['POST'])
+def create_user():
     try:
-        # Get data from the POST request
         data = request.get_json()
-        username = data.get('username')
-        password = data.get('password')
+        
+        # Validate required fields
+        if not all(field in data for field in ['first_name', 'last_name', 'email', 'password']):
+            return jsonify({"error": "All fields are required!"}), 400
 
-        if not username or not password:
-            return jsonify({"error": "Username and password are required!"}), 400
+        # Hash the password
+        hashed_password = generate_password_hash(data['password'])
+        
+        # Create a new user with first name, last name, and hashed password
+        new_user = {
+            "first_name": data['first_name'],
+            "last_name": data['last_name'],
+            "password": hashed_password,  # Store the hashed password
+            "email": data['email'],
+            "address": data.get('address', "")  # Default to empty string if address not provided
+        }
+        
+        # Insert the new user into the 'users' collection
+        users_collection.insert_one(new_user)
 
-        # Find the user in the 'users' collection
-        user = users_collection.find_one({"username": username})
-        if not user:
-            return jsonify({"error": "Invalid username or password!"}), 401
-
-        # Check if the password matches
-        if not check_password_hash(user['password'], password):
-            return jsonify({"error": "Invalid username or password!"}), 401
-
-        # Return a success message
-        return jsonify({"message": "Login successful!", "user_id": str(user['_id'])}), 200
+        return jsonify({"message": "User created successfully!"}), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+
 
 # Route to create a new account
 @api.route('/api/create_account', methods=['POST'])
@@ -125,4 +158,19 @@ def get_transaction_logs():
 
     except Exception as e:
         print(f"Error fetching transaction logs: {e}")  # Debugging error message
+        return jsonify({"error": str(e)}), 500
+    
+# Route to get all users
+@api.route('/api/users', methods=['GET'])
+def get_all_users():
+    try:
+        # Fetch all users from the 'users' collection
+        users = list(users_collection.find({}, {'_id': 0}))  # Exclude the '_id' field for cleaner output
+
+        if not users:
+            return jsonify({"message": "No users found."}), 404
+
+        return jsonify(users), 200
+
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
