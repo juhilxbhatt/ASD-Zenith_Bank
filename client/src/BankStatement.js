@@ -10,7 +10,7 @@ import html2canvas from 'html2canvas'; // Import html2canvas
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 function BankStatement() {
-  const [statementData, setStatementData] = useState(null);
+  const [statementData, setStatementData] = useState({ TransactionLogs: [] }); // Initialize with empty TransactionLogs
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [startDate, setStartDate] = useState('');
@@ -217,11 +217,13 @@ function BankStatement() {
           <Typography variant="h6" gutterBottom>
             User ID: {statementData.UserID}
           </Typography>
+          {/* Ensure that AccountID is available before displaying */}
           <Typography variant="h6" gutterBottom>
-            Account ID: {statementData.AccountID}
+            {statementData.AccountID ? `Account ID: ${statementData.AccountID}` : 'Account ID not available'}
           </Typography>
+          {/* Ensure that TransactionID is available before displaying */}
           <Typography variant="h6" gutterBottom>
-            Transaction ID: {statementData.TransactionID}
+            {statementData.TransactionID ? `Transaction ID: ${statementData.TransactionID}` : 'Transaction ID not available'}
           </Typography>
         </Box>
 
@@ -240,32 +242,32 @@ function BankStatement() {
             Transaction Logs
           </Typography>
 
-        {/* Date filter section */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
-          <TextField
-            label="Start Date"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            sx={{ backgroundColor: '#fff', borderRadius: '5px' }}
-          />
-          <TextField
-            label="End Date"
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            sx={{ backgroundColor: '#fff', borderRadius: '5px' }}
-          />
-          <Button variant="contained" color="primary" onClick={handleFilter}>
-            Filter
-          </Button>
-        </Box>
+          {/* Date filter section */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+            <TextField
+              label="Start Date"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              sx={{ backgroundColor: '#fff', borderRadius: '5px' }}
+            />
+            <TextField
+              label="End Date"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              sx={{ backgroundColor: '#fff', borderRadius: '5px' }}
+            />
+            <Button variant="contained" color="primary" onClick={handleFilter}>
+              Filter
+            </Button>
+          </Box>
 
           {statementData.TransactionLogs.length === 0 ? (
             <Typography>No transaction logs found.</Typography>

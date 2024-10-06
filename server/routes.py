@@ -137,18 +137,15 @@ def get_transaction_logs():
 
         # Convert the user_id to an ObjectId
         user_id = ObjectId(user_id)
-        print(f"Received user_id from cookies: {user_id}")
 
         # Find all accounts associated with the user
         accounts = list(accounts_collection.find({"userID": user_id}, {"_id": 1}))
-        print(f"Found accounts for user {user_id}: {accounts}")
 
         if not accounts:
             return jsonify({"message": "No accounts found for this user"}), 404
 
         # Extract account IDs
         account_ids = [account["_id"] for account in accounts]
-        print(f"Extracted account IDs: {account_ids}")
 
         # Create query filters for transactions (multiple accounts)
         query = {"AccountID": {"$in": account_ids}}  # Match any of the user's accounts
@@ -158,7 +155,6 @@ def get_transaction_logs():
             query,
             {'Amount': 1, 'Date': 1, 'Description': 1, 'AccountID': 1, '_id': 0}
         ))
-        print(f"Fetched transaction logs: {transaction_logs}")
 
         # Create a function to serialize ObjectId
         def serialize(data):
@@ -180,7 +176,6 @@ def get_transaction_logs():
             "TransactionLogs": serialized_transaction_logs,
             "Accounts": serialized_accounts
         }
-        print(f"Response: {response}")
 
         return jsonify(response), 200
 
