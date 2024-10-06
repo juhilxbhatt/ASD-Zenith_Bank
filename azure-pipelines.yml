@@ -29,11 +29,12 @@ steps:
 # Node.js setup for React tests
 - task: NodeTool@0
   inputs:
-    versionSpec: '16.x'  # or the Node.js version you're using
+    versionSpec: '18.x'  # or the Node.js version you're using
     checkLatest: true
 
 - script: |
     cd client
+    rm -rf node_modules package-lock.json
     npm install
     npm run test -- --coverage --ci
   displayName: 'Juhil React tests'

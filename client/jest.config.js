@@ -1,7 +1,8 @@
 module.exports = {
-    testPathIgnorePatterns: ['/node_modules/'],
-    collectCoverage: true,
-    coverageDirectory: '<rootDir>/coverage',
-    testMatch: ['<rootDir>/src/tests/**/*.test.{js,jsx,ts,tsx}'],
-    coverageReporters: ['json', 'lcov', 'text', 'clover'],
-  };  
+  roots: ['<rootDir>/src/'],
+  testMatch: ['**/tests/**/*.test.js'],
+  transform: {
+    '^.+\\.(js|jsx)$': 'babel-jest',
+  },
+  moduleFileExtensions: ['js', 'jsx'],
+};
