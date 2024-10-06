@@ -27,7 +27,6 @@ const LoginPage = () => {
                 setError('');
 
                 // Store the user ID in a cookie (expires in 7 days)
-                console.log(result.user.id);
                 Cookies.set('user_id', result.user.id, { expires: 0.1 });
 
                 // Redirect after a short delay

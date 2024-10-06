@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from bson.objectid import ObjectId
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Load environment variables
 load_dotenv()
@@ -29,7 +29,6 @@ users_collection = db["User"]
 transaction_logs_collection = db["TransactionLog"]
 transactions_collection = db['transactions']  # Define the transactions collection
 
-hardcoded_user_id = ObjectId("66dba291464bf428046deaf2") # Replace this with the user ID from Login
 hardcoded_transaction_id = ObjectId("66daff5b464bf428046deaf0") # Replace this with the trasnaction ID from Login
 hardcoded_account_id = ObjectId("66dc239b9e87d6406371e602") # Replace this with the account ID from Login
 
@@ -97,15 +96,21 @@ def create_account():
         # Get data from the POST request
         data = request.get_json()
 
+        # Get user_id from the cookies
+        user_id = request.cookies.get('user_id')
+
+        if not user_id:
+            return jsonify({"error": "User ID not found in cookies!"}), 400
+
         # Check if the user exists in the 'users' collection
-        user = users_collection.find_one({"_id": hardcoded_user_id})
+        user = users_collection.find_one({"_id": ObjectId(user_id)})
         if not user:
             return jsonify({"error": "User not found!"}), 404
 
         # Prepare the account data
         new_account = {
-            "userID": hardcoded_user_id,
-            "transactionID": hardcoded_transaction_id,
+            "userID": ObjectId(user_id),  # Use user_id from cookies
+            "transactionID": hardcoded_transaction_id,  # Assuming you have this value elsewhere
             "accountType": data['accountType'],
             "balance": float(data['balance']),
             "status": 'Active'
@@ -120,44 +125,62 @@ def create_account():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Route to get All Transaction Logs
+# Route to fetch all accounts
 @api.route('/api/transaction_logs', methods=['GET'])
 def get_transaction_logs():
     try:
-        # Use hardcoded user ID
-        user_id = hardcoded_user_id
-        
-        # Get date range from query parameters
-        start_date = request.args.get('start_date')
-        end_date = request.args.get('end_date')
+        # Get user_id from the cookies
+        user_id = request.cookies.get('user_id')
 
-        # Create query filters
-        query = {"UserID": user_id}
+        if not user_id:
+            return jsonify({"error": "User ID not found in cookies!"}), 400
 
-        if start_date and end_date:
-            # Convert date strings to datetime objects
-            start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
-            end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
+        # Convert the user_id to an ObjectId
+        user_id = ObjectId(user_id)
+        print(f"Received user_id from cookies: {user_id}")
 
-            # Add date range filter to the query
-            query["Date"] = {"$gte": start_date_obj, "$lte": end_date_obj}
+        # Find all accounts associated with the user
+        accounts = list(accounts_collection.find({"userID": user_id}, {"_id": 1}))
+        print(f"Found accounts for user {user_id}: {accounts}")
+
+        if not accounts:
+            return jsonify({"message": "No accounts found for this user"}), 404
+
+        # Extract account IDs
+        account_ids = [account["_id"] for account in accounts]
+        print(f"Extracted account IDs: {account_ids}")
+
+        # Create query filters for transactions (multiple accounts)
+        query = {"AccountID": {"$in": account_ids}}  # Match any of the user's accounts
 
         # Fetch the filtered transaction logs
         transaction_logs = list(transaction_logs_collection.find(
             query,
-            {'Amount': 1, 'Date': 1, 'Description': 1, '_id': 0}
+            {'Amount': 1, 'Date': 1, 'Description': 1, 'AccountID': 1, '_id': 0}
         ))
+        print(f"Fetched transaction logs: {transaction_logs}")
 
-        if not transaction_logs:
-            return jsonify({"message": "No transaction logs found"}), 404
+        # Create a function to serialize ObjectId
+        def serialize(data):
+            if isinstance(data, ObjectId):
+                return str(data)
+            if isinstance(data, list):
+                return [serialize(item) for item in data]
+            if isinstance(data, dict):
+                return {key: serialize(value) for key, value in data.items()}
+            return data
 
-        # Return the User ID, Account ID, Transaction ID, and logs
+        # Serialize transaction logs and accounts
+        serialized_transaction_logs = serialize(transaction_logs)
+        serialized_accounts = serialize(accounts)
+
+        # Create response object
         response = {
             "UserID": str(user_id),
-            "AccountID": str(hardcoded_account_id),
-            "TransactionID": str(hardcoded_transaction_id),
-            "TransactionLogs": transaction_logs
+            "TransactionLogs": serialized_transaction_logs,
+            "Accounts": serialized_accounts
         }
+        print(f"Response: {response}")
 
         return jsonify(response), 200
 
@@ -169,13 +192,17 @@ def get_transaction_logs():
 @api.route('/api/user/<user_id>/transactions', methods=['GET'])
 def get_user_transactions(user_id):
     month = request.args.get('month', None)  # Optional query param for month filter
+    print(f"Received request to get transactions for user: {user_id} with month filter: {month}")
+
     user_transactions = list(transactions_collection.find({"user_id": user_id}))
+    print(f"Fetched transactions for user {user_id}: {user_transactions}")
 
     # Optionally filter by month
     if month:
         user_transactions = [
             txn for txn in user_transactions if datetime.strptime(txn['date'], "%Y-%m-%d").strftime('%B') == month
         ]
+        print(f"Filtered transactions for month {month}: {user_transactions}")
 
     return jsonify(user_transactions)
 
@@ -207,4 +234,37 @@ def get_all_users():
         return jsonify(users), 200
 
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Route to get all AccountIDs by UserID
+@api.route('/api/get_accounts_by_user', methods=['GET'])
+def get_accounts_by_user():
+    try:
+        # Get user_id from the cookies
+        user_id = request.cookies.get('user_id')
+
+        if not user_id:
+            return jsonify({"error": "User ID not found in cookies!"}), 400
+
+        # Convert the user_id to an ObjectId (assuming MongoDB stores user IDs as ObjectIds)
+        user_id = ObjectId(user_id)
+
+        # Query the accounts collection for all accounts associated with this user
+        accounts = list(accounts_collection.find({"userID": user_id}))
+
+        if not accounts:
+            return jsonify({"message": "No accounts found for this user"}), 404
+
+        # Extract all AccountIDs and return them
+        account_ids = [str(account["_id"]) for account in accounts]
+
+        response = {
+            "UserID": str(user_id),
+            "AccountIDs": account_ids  # List of all associated account IDs
+        }
+
+        return jsonify(response), 200
+
+    except Exception as e:
+        print(f"Error fetching accounts by user_id: {e}")
         return jsonify({"error": str(e)}), 500
