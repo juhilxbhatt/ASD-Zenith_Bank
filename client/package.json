@@ -25,7 +25,7 @@
     "scripts": {
         "start": "react-scripts start",
         "build": "react-scripts build",
-        "test": "react-scripts test --ci --coverage --all",
+        "test": "react-scripts test --ci --coverage --watchAll=false",
         "eject": "react-scripts eject"
     },
     "proxy": "http://127.0.0.1:5000",
