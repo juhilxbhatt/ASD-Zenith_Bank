@@ -45,10 +45,5 @@
         "jest": "^27.5.1",
         "jest-junit": "^16.0.0",
         "react-test-renderer": "^18.3.1"
-    },
-    "jest": {
-    "testPathPattern": ["src/tests"],
-    "collectCoverage": true,
-    "coverageDirectory": "<rootDir>/coverage"
     }
 }
