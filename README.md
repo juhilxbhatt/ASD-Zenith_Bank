@@ -48,6 +48,7 @@ Branches
 1. Account
 2. TransactionLog
 3. TransactionLogUnitTest
+4. LoginSessionCookie
 
 Features
 

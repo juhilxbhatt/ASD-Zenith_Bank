@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './LoginPage.css';
+import Cookies from 'js-cookie';  // Import js-cookie
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -24,9 +25,14 @@ const LoginPage = () => {
             if (response.ok) {
                 setSuccess('Login successful! Redirecting...');
                 setError('');
+
+                // Store the user ID in a cookie (expires in 7 days)
+                console.log(result.user.id);
+                Cookies.set('user_id', result.user.id, { expires: 0.1 });
+
                 // Redirect after a short delay
                 setTimeout(() => {
-                    window.location.href = '/dashboard'; // Change to your desired redirect
+                    window.location.href = '/Home';  // Redirect to your home page
                 }, 2000);
             } else {
                 if (result.error) {

@@ -51,6 +51,7 @@ def login():
         return jsonify({
             'message': 'Login successful', 
             'user': {
+                'id': str(user['_id']),  # Convert ObjectId to string for JSON serialization
                 'first_name': user['first_name'],
                 'last_name': user['last_name'], 
                 'email': user['email'], 
