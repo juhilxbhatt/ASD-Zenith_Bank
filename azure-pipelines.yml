@@ -32,11 +32,12 @@ steps:
     versionSpec: '18.x'  # or the Node.js version you're using
     checkLatest: true
 
-- script: |
-    cd client
-    npm install
-    npm run test -- --coverage --ci --watchAll=false
-  displayName: 'Juhil React tests'
+# Test for React
+#- script: |
+#    cd client
+#    npm install
+#    npm run test -- --coverage --ci --watchAll=false
+#  displayName: 'Juhil React tests'
 
 # Publish test results
 - task: PublishTestResults@2

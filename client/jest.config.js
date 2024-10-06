@@ -1,8 +1,9 @@
 module.exports = {
+  // Other configurations...
   transform: {
-    '^.+\\.jsx?$': 'babel-jest',
+    '^.+\\.jsx?$': 'babel-jest', // Transform JavaScript files using Babel
   },
-  moduleNameMapper: {
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy', // For handling CSS imports
-  },
+  transformIgnorePatterns: [
+    '/node_modules/(?!axios)/', // Transform axios module
+  ],
 };
