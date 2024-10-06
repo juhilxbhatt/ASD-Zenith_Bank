@@ -1,0 +1,112 @@
+body {
+  background-color: #000; /* Black background for the entire page */
+  color: #fff; /* White text color */
+  font-family: Arial, sans-serif; /* Font family */
+  margin: 0; /* Remove default margin */
+  padding: 0; /* Remove default padding */
+}
+
+.navbar {
+  display: flex; /* Flexbox for the navbar */
+  justify-content: space-between; /* Space between elements */
+  align-items: center; /* Center items vertically */
+  background-color: #1a1a1a; /* Dark background for the navbar */
+  padding: 10px 20px; /* Padding for spacing */
+  position: fixed; /* Fixed at the top */
+  top: 0; /* Touches the top */
+  left: 0; /* Aligns to the left */
+  width: 100%; /* Full width */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Shadow for depth */
+  z-index: 1000; /* On top of other elements */
+}
+
+.navbar-content {
+  display: flex; /* Flexbox for navbar content */
+  align-items: center; /* Center items vertically */
+  width: 100%; /* Full width for navbar content */
+}
+
+.navbar-button {
+  background: none; /* No background */
+  border: none; /* No border */
+  color: #007bff; /* Blue text */
+  font-size: 18px; /* Font size */
+  cursor: pointer; /* Pointer cursor */
+  padding: 10px 20px; /* Padding for spacing */
+}
+
+.login-inputs {
+  display: flex; /* Flexbox for inputs */
+  align-items: center; /* Center inputs vertically */
+  margin-right: auto; /* Space on the right for register text */
+}
+
+input {
+  padding: 8px; /* Padding for inputs */
+  border: 1px solid #333; /* Dark border for inputs */
+  border-radius: 4px; /* Rounded corners */
+  background-color: #fff; /* White background for inputs */
+  color: #000; /* Black text color inside inputs */
+  font-size: 14px; /* Font size */
+  margin-right: 10px; /* Space between inputs */
+}
+
+.login-button {
+  padding: 10px 20px; /* Increased padding for a fatter button */
+  border: none; /* Remove border */
+  border-radius: 4px; /* Rounded corners */
+  background-color: #007bff; /* Bootstrap primary color */
+  color: #fff; /* White text for button */
+  font-size: 14px; /* Button text size */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s; /* Smooth transition */
+  margin-left: 10px; /* Space to the left of the button */
+}
+
+
+.login-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+.register-text {
+  margin-left: 10px; /* Adjust this value to move left */
+  cursor: pointer; /* Pointer cursor */
+  color: #007bff; /* Blue color for register text */
+  font-size: 14px; /* Font size */
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.message-container {
+    margin-top: 20px; /* Space between inputs and messages */
+    text-align: center; /* Center align messages */
+}
+
+.error {
+    color: #ff4d4d; /* Red color for error messages */
+    margin-top: 10px; /* Space above the error message */
+}
+
+.success {
+    color: #28a745; /* Green color for success messages */
+    margin-top: 10px; /* Space above the success message */
+}
+
+
+
+.login-inputs {
+  display: flex; /* Flexbox for inputs */
+  align-items: center; /* Center inputs vertically */
+  margin-right: auto; /* Space on the right for register text */
+}
+
+.register-text {
+  margin-left: 50; /* Push to the end */
+  cursor: pointer; /* Pointer cursor */
+  color: #007bff; /* Blue color for register text */
+  font-size: 14px; /* Font size */
+  transition: color 0.3s; /* Smooth color transition */
+}
+
+.register-text:hover {
+  color: #0056b3; /* Darker blue on hover for indication */
+}

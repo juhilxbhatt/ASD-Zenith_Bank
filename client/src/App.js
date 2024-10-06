@@ -9,6 +9,8 @@ import TransactionLogs from './TransactionLogs';
 import MonthlyStatement from './MonthlyStatement';
 import TransferDeposit from './TransferDeposit';
 import BankStatement from './BankStatement';
+import LoginPage from './LoginPage';
+import CreateUser from './CreateUser';
 
 const theme = createTheme({
   palette: {
@@ -34,6 +36,8 @@ function App() {
               <Route path="/MonthlyStatement" element={<MonthlyStatement />} />
               <Route path="/TransferDeposit" element={<TransferDeposit />} />
               <Route path="/BankStatement" element={<BankStatement />} />
+              <Route path="/login-page" element={<LoginPage />} />
+              <Route path="/create-user" element={<CreateUser />} />
             </Routes>
           </div>
         </Router>
