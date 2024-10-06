@@ -47,13 +47,9 @@
         "react-test-renderer": "^18.3.1"
     },
     "jest": {
-        "reporters": [
-            "default",
-            ["jest-junit", { "output": "../junit/test-results-react.xml" }]
-        ],
-        "testMatch": [
-            "**/src/tests/**/*.[jt]s?(x)",
-            "**/?(*.)+(spec|test).[tj]s?(x)"
-        ]
+    "setupFilesAfterEnv": ["<rootDir>/src/jest-setup.js"],
+    "testPathPattern": ["src/tests"],
+    "collectCoverage": true,
+    "coverageDirectory": "<rootDir>/coverage"
     }
 }
