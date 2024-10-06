@@ -24,7 +24,7 @@ steps:
     source venv/bin/activate
     export PYTHONPATH=$(pwd)
     pytest server/tests/ --junitxml=junit/test-results-flask.xml
-  displayName: 'Run Flask tests'
+  displayName: 'Juhil Flask tests'
 
 # Node.js setup for React tests
 - task: NodeTool@0
@@ -36,7 +36,7 @@ steps:
     cd client
     npm install
     npm test -- --coverage --ci --reporters=jest-junit --outputFile=../junit/test-results-react.xml
-  displayName: 'Run React tests'
+  displayName: 'Juhil React tests'
 
 # Publish test results
 - task: PublishTestResults@2
