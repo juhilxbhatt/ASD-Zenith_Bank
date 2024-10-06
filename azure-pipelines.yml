@@ -8,48 +8,62 @@ pool:
 
 # Backend Python Steps
 steps:
+# Set up Python for Backend
 - task: UsePythonVersion@0
   inputs:
-    versionSpec: '3.x'
+    versionSpec: '3.x'  # Python version to use
     addToPath: true
   displayName: 'Set up Python 3.x'
 
+# Install backend dependencies
 - script: |
     echo "Setting up Python virtual environment - Joseph Jello"
-    python -m venv venv
-    source venv/bin/activate  # For Windows, use `venv\Scripts\activate`
-    pip install -r server/requirements.txt
-    pip install pytest pytest-flask
+    python -m venv venv  # Create virtual environment
+    source venv/bin/activate  # Activate venv
+    pip install -r server/requirements.txt  # Install Python dependencies from requirements
+    pip install pytest pytest-flask  # Install test dependencies
   displayName: 'Install Python dependencies'
 
+# Run backend tests
 - script: |
     echo "Executing Backend Tests - Joseph Jello"
-    source venv/bin/activate  # For Windows, use `venv\Scripts\activate`
-    export PYTHONPATH=$PYTHONPATH:$(pwd)/server  # Add the server directory to the Python path
-    ls server/tests  # Debugging: List test files
-    pytest server/tests/ --junitxml=junit/test-results.xml  # Run the tests
+    source venv/bin/activate  # Activate the virtual environment
+    export PYTHONPATH=$PYTHONPATH:$(pwd)/server  # Add server folder to Python path
+    pytest server/tests/ --junitxml=junit/test-results.xml  # Run backend tests with pytest
   displayName: 'Run backend tests'
 
-# Frontend Node.js Steps
-- task: NodeTool@0
-  inputs:
-    versionSpec: '18.x'  # Update to use Node.js version 18.x
-  displayName: 'Install Node.js 18.x'
-
-- script: |
-    echo "Running Frontend Tests by Joseph Jello"
-    cd client  # Navigate to the frontend directory
-    npm install
-    npm test -- --ci --reporters=jest-junit --outputFile=results/junit/test-results.xml
-  displayName: 'Run frontend tests'
-
+# Publish backend test results
 - task: PublishTestResults@2
   inputs:
     testResultsFormat: 'JUnit'
-    testResultsFiles: '**/junit/test-results.xml'  # Look for JUnit XML files in all folders
+    testResultsFiles: 'junit/test-results.xml'
     failTaskOnFailedTests: true
-  displayName: 'Publish test results'
+  displayName: 'Publish Backend Test Results'
 
+# Frontend Node.js Steps
+# Install Node.js for Frontend
+- task: NodeTool@0
+  inputs:
+    versionSpec: '18.x'  # Specify Node.js version (>= 18.x) for the frontend tests
+  displayName: 'Install Node.js 18.x'
+
+# Install frontend dependencies and run tests
 - script: |
-    echo "Pipeline completed by Joseph Jello"
+    echo "Running Frontend Tests by Joseph Jello"
+    cd client  # Navigate to the client (frontend) directory
+    npm install  # Install frontend dependencies
+    npm test -- --ci --reporters=jest-junit --outputFile=results/junit/test-results.xml  # Run Jest tests with JUnit output
+  displayName: 'Run frontend tests'
+
+# Publish frontend test results
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/junit/test-results.xml'  # Glob pattern to locate JUnit XML files
+    failTaskOnFailedTests: true
+  displayName: 'Publish Frontend Test Results'
+
+# Final logging for pipeline completion
+- script: |
+    echo "Pipeline completed successfully by Joseph Jello"
   displayName: 'Completion Log'
