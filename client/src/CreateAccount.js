@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { Box, Button, Container, Typography, Card, CardContent, CardActions, TextField } from '@mui/material';
+import { styled } from '@mui/system';
+
+// Customizing the card styles
+const StyledCard = styled(Card)(({ theme }) => ({
+  borderRadius: '15px',
+  boxShadow: theme.shadows[4],
+}));
 
 function CreateAccount() {
   const [accountType, setAccountType] = useState('');
   const [balance, setBalance] = useState('');
-  const [errorMessage, setErrorMessage] = useState(''); // State to store the error message
+  const [errorMessage, setErrorMessage] = useState('');
 
   const createAccount = async (e) => {
     e.preventDefault();
-    
+
     if (isNaN(balance)) {
       setErrorMessage('Please enter a valid number for the balance.');
       return;
@@ -20,12 +28,12 @@ function CreateAccount() {
     };
 
     try {
-      const response = await axios.post('/api/create_account', newAccount); // Send a POST request to the server
+      const response = await axios.post('/api/create_account', newAccount);
       if (response.status === 200) {
         alert('Account created successfully!');
         setAccountType('');
         setBalance('');
-        setErrorMessage(''); // Clear any error messages
+        setErrorMessage('');
       }
     } catch (error) {
       console.error('There was an error creating the account!', error);
@@ -39,42 +47,69 @@ function CreateAccount() {
     // Check if the value contains only digits or is empty
     if (/^\d*$/.test(value)) {
       setBalance(value);
-      setErrorMessage(''); // Clear the error message if input is valid
+      setErrorMessage('');
     } else {
-      setErrorMessage('Please Enter A Number'); // Set an error message for invalid input
+      setErrorMessage('Please Enter A Number');
     }
   };
 
   return (
-    <div>
-      <h1>Create New Account</h1>
-      <form onSubmit={createAccount}>
-        <div>
-          <label>Account Type:</label>
-          <select
-            value={accountType}
-            onChange={(e) => setAccountType(e.target.value)}
-            required
-          >
-            <option value="" disabled>Select Account Type</option>
-            <option value="Debit">Debit</option>
-            <option value="Saving">Saving</option>
-            <option value="Cheque">Cheque</option>
-          </select>
-        </div>
-        <div>
-          <label>Balance:</label>
-          <input
-            type="text"
-            value={balance}
-            onChange={handleBalanceChange} // Use the custom change handler
-            required
-          />
-        </div>
-        {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>} {/* Display error message if present */}
-        <button type="submit">Create Account</button>
-      </form>
-    </div>
+    <Box
+      sx={{
+        background: 'linear-gradient(to right, #2193b0, #6dd5ed)',
+        minHeight: '100vh',
+        py: 10,
+      }}
+    >
+      <Container maxWidth="sm">
+        <StyledCard>
+          <CardContent>
+            <Typography variant="h4" align="center" gutterBottom sx={{ color: '#', fontWeight: 'bold' }}>
+              Create New Account
+            </Typography>
+            <form onSubmit={createAccount}>
+              <div>
+                <TextField
+                  select
+                  label="Account Type"
+                  value={accountType}
+                  onChange={(e) => setAccountType(e.target.value)}
+                  fullWidth
+                  required
+                  sx={{ mb: 3 }}
+                >
+                  <option value="" disabled>Select Account Type</option>
+                  <option value="Debit">Debit</option>
+                  <option value="Saving">Saving</option>
+                  <option value="Cheque">Cheque</option>
+                </TextField>
+              </div>
+              <div>
+                <TextField
+                  type="text"
+                  label="Balance"
+                  value={balance}
+                  onChange={handleBalanceChange}
+                  fullWidth
+                  required
+                  sx={{ mb: 2 }}
+                />
+              </div>
+              {errorMessage && (
+                <Typography variant="body2" sx={{ color: 'red', mb: 2 }}>
+                  {errorMessage}
+                </Typography>
+              )}
+              <CardActions>
+                <Button type="submit" variant="contained" color="primary" fullWidth sx={{ py: 2 }}>
+                  Create Account
+                </Button>
+              </CardActions>
+            </form>
+          </CardContent>
+        </StyledCard>
+      </Container>
+    </Box>
   );
 }
 

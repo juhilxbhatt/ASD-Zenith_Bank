@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './App.css';
+import { Box, Button, Typography, Container, Card, CardContent, CardActions, Grid } from '@mui/material';
+import { styled } from '@mui/system';
+
+// Custom Card for Transaction Log Item
+const StyledCard = styled(Card)(({ theme }) => ({
+  marginBottom: '20px',
+  '&:hover': {
+    boxShadow: theme.shadows[6],
+    transform: 'scale(1.02)',
+    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+  },
+}));
 
 function TransactionLogs() {
   const [logs, setLogs] = useState([]);
@@ -47,55 +58,105 @@ function TransactionLogs() {
   const accountIds = accounts.map(account => account._id.toString()); // Make sure to convert ObjectId to string
 
   return (
-    <div className="transaction-logs">
-      <h1>Transaction Logs</h1>
+    <Box
+      sx={{
+        background: 'linear-gradient(to right, #2193b0, #6dd5ed)',
+        minHeight: '100vh',
+        py: 10,
+      }}
+    >
+      <Container maxWidth="lg">
+        <Typography
+          variant="h2"
+          align="center"
+          gutterBottom
+          sx={{ color: '#fff', fontWeight: 'bold', mb: 3 }}
+        >
+          Transaction Logs
+        </Typography>
 
-      {/* Account selection */}
-      {accountIds.length > 0 ? (
-        <div className="account-selector">
-          <h2>Select Account</h2>
-          <ul>
-            {accountIds.map((accountId) => (
-              <li key={accountId}>
-                <button onClick={() => handleAccountSelect(accountId)}>
-                  View Transactions for Account {accountId}
-                </button>
-                {/* Indicate if there are no transactions */}
-                {groupedLogs[accountId] && groupedLogs[accountId].length === 0 && (
-                  <span style={{ color: 'red' }}> (No transactions available)</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : (
-        <p>No accounts available.</p>
-      )}
-
-      {/* Transaction logs for the selected account */}
-      {selectedAccount && groupedLogs[selectedAccount] !== undefined ? (
-        <div className="logs-list">
-          <h2>Transactions for Account {selectedAccount}</h2>
-          {groupedLogs[selectedAccount] && groupedLogs[selectedAccount].length > 0 ? (
-            <ul>
-              {groupedLogs[selectedAccount].map((log, index) => (
-                <li key={index} className="log-item">
-                  <div className="log-inline">
-                    <p><strong>Amount:</strong> ${log.Amount.toFixed(2)}</p>
-                    <p><strong>Date:</strong> {new Date(log.Date).toLocaleDateString()}</p>
-                  </div>
-                  <p><strong>Description:</strong> {log.Description}</p>
-                </li>
+        {/* Account selection */}
+        {accountIds.length > 0 ? (
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" align="center" sx={{ color: '#f0f0f0', mb: 2 }}>
+              Select Account
+            </Typography>
+            <Grid container spacing={2}>
+              {accountIds.map((accountId) => (
+                <Grid item xs={12} sm={6} md={4} key={accountId}>
+                  <StyledCard>
+                    <CardContent>
+                      <Typography variant="h5" align="center">
+                        Account {accountId}
+                      </Typography>
+                      {groupedLogs[accountId] && groupedLogs[accountId].length === 0 && (
+                        <Typography variant="body2" align="center" sx={{ color: 'red' }}>
+                          No transactions available
+                        </Typography>
+                      )}
+                    </CardContent>
+                    <CardActions>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        onClick={() => handleAccountSelect(accountId)}
+                      >
+                        View Transactions
+                      </Button>
+                    </CardActions>
+                  </StyledCard>
+                </Grid>
               ))}
-            </ul>
-          ) : (
-            <p>No transactions for this account.</p> // Message when no transactions exist
-          )}
-        </div>
-      ) : (
-        selectedAccount && <p>No transactions for this account.</p>
-      )}
-    </div>
+            </Grid>
+          </Box>
+        ) : (
+          <Typography variant="body1" align="center" sx={{ color: '#f0f0f0' }}>
+            No accounts available.
+          </Typography>
+        )}
+
+        {/* Transaction logs for the selected account */}
+        {selectedAccount && groupedLogs[selectedAccount] !== undefined ? (
+          <Box>
+            <Typography variant="h5" align="center" sx={{ color: '#fff', mb: 3 }}>
+              Transactions for Account {selectedAccount}
+            </Typography>
+            {groupedLogs[selectedAccount] && groupedLogs[selectedAccount].length > 0 ? (
+              <Grid container spacing={2}>
+                {groupedLogs[selectedAccount].map((log, index) => (
+                  <Grid item xs={12} key={index}>
+                    <StyledCard>
+                      <CardContent>
+                        <Typography variant="body1">
+                          <strong>Amount:</strong> ${log.Amount.toFixed(2)}
+                        </Typography>
+                        <Typography variant="body1">
+                          <strong>Date:</strong> {new Date(log.Date).toLocaleDateString()}
+                        </Typography>
+                        <Typography variant="body1">
+                          <strong>Description:</strong> {log.Description}
+                        </Typography>
+                      </CardContent>
+                    </StyledCard>
+                  </Grid>
+                ))}
+              </Grid>
+            ) : (
+              <Typography variant="body1" align="center" sx={{ color: '#f0f0f0' }}>
+                No transactions for this account.
+              </Typography>
+            )}
+          </Box>
+        ) : (
+          selectedAccount && (
+            <Typography variant="body1" align="center" sx={{ color: '#f0f0f0' }}>
+              No transactions for this account.
+            </Typography>
+          )
+        )}
+      </Container>
+    </Box>
   );
 }
 

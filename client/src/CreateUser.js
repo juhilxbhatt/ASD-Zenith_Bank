@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom'; // Import Link for navigation
-import './CreateUser.css'; // Import the CSS file for styling
+import { Link } from 'react-router-dom'; 
+import { Box, Container, Typography, TextField, Button, Alert } from '@mui/material';
 
 function CreateUser() {
     const [firstName, setFirstName] = useState('');
@@ -34,80 +34,100 @@ function CreateUser() {
     };
 
     return (
-        <div className="create-user-container">
-            <h1>Create New User</h1>
-            <form onSubmit={handleSubmit} className="create-user-form">
-                {/* First Name */}
-                <div className="form-group">
-                    <label htmlFor="firstName">First Name</label>
-                    <input
-                        type="text"
-                        id="firstName"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        required
-                    />
-                </div>
+        <Box
+            sx={{
+                background: 'linear-gradient(to right, #2193b0, #6dd5ed)',
+                minHeight: '100vh',
+                py: 10,
+            }}
+        >
+            <Container maxWidth="sm">
+                <Typography variant="h4" align="center" sx={{ color: '#fff', mb: 4 }}>
+                    Create New User
+                </Typography>
+                
+                <Box 
+                    sx={{
+                        backgroundColor: '#fff', // White background
+                        borderRadius: '8px',
+                        padding: '24px',
+                        boxShadow: 3, // Optional: add a shadow for better separation
+                    }}
+                >
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {/* First Name */}
+                        <TextField
+                            label="First Name"
+                            variant="outlined"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            required
+                            fullWidth
+                        />
 
-                {/* Last Name */}
-                <div className="form-group">
-                    <label htmlFor="lastName">Last Name</label>
-                    <input
-                        type="text"
-                        id="lastName"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        required
-                    />
-                </div>
+                        {/* Last Name */}
+                        <TextField
+                            label="Last Name"
+                            variant="outlined"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            required
+                            fullWidth
+                        />
 
-                {/* Email */}
-                <div className="form-group">
-                    <label htmlFor="email">Email</label>
-                    <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
-                </div>
+                        {/* Email */}
+                        <TextField
+                            label="Email"
+                            type="email"
+                            variant="outlined"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            fullWidth
+                        />
 
-                {/* Password */}
-                <div className="form-group">
-                    <label htmlFor="password">Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </div>
+                        {/* Password */}
+                        <TextField
+                            label="Password"
+                            type="password"
+                            variant="outlined"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            fullWidth
+                        />
 
-                {/* Address */}
-                <div className="form-group">
-                    <label htmlFor="address">Address</label>
-                    <input
-                        type="text"
-                        id="address"
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                    />
-                </div>
+                        {/* Address */}
+                        <TextField
+                            label="Address"
+                            variant="outlined"
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
+                            fullWidth
+                        />
 
-                <button type="submit" className="submit-btn">Create User</button>
-            </form>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            sx={{ borderRadius: '8px', py: 2 }}
+                        >
+                            Create User
+                        </Button>
+                    </form>
+                </Box>
 
-            {/* Display message */}
-            {message && <p className="message">{message}</p>}
+                {/* Display message */}
+                {message && <Alert severity={message.includes('Error') ? 'error' : 'success'}>{message}</Alert>}
 
-            {/* Link to go back to Login Page */}
-            <p>
-                Already have an account?{' '}
-                <Link to="/login-page">Login here</Link>
-            </p>
-        </div>
+                {/* Link to go back to Login Page */}
+                <Typography variant="body2" align="center" sx={{ color: '#fff', mt: 2 }}>
+                    Already have an account?{' '}
+                    <Link to="/login-page" style={{ color: '#ffeb3b' }}>Login here</Link>
+                </Typography>
+            </Container>
+        </Box>
     );
 }
 

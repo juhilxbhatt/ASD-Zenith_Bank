@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
-import './LoginPage.css';
-import Cookies from 'js-cookie';  // Import js-cookie
+import { Box, Button, Typography, Container } from '@mui/material';
+import { styled } from '@mui/system';
+import Cookies from 'js-cookie';
+
+// Customizing the button hover effect
+const StyledButton = styled(Button)(({ theme }) => ({
+  '&:hover': {
+    backgroundColor: theme.palette.primary.dark,
+    transition: 'background-color 0.3s ease',
+  },
+}));
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -48,40 +57,96 @@ const LoginPage = () => {
     };
 
     return (
-        <div>
-            <nav className="navbar">
-                <div className="navbar-content">
-                    <button className="navbar-button" onClick={() => window.location.href = '/login'}>
-                        Zenith Bank
-                    </button>
-                    <div className="login-inputs">
+        <Box
+            sx={{
+                background: 'linear-gradient(to right, #2193b0, #6dd5ed)',
+                minHeight: '100vh',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                py: 5,
+            }}
+        >
+            <Container maxWidth="sm">
+                <Typography
+                    variant="h4"
+                    align="center"
+                    gutterBottom
+                    sx={{ color: '#fff', fontWeight: 'bold' }}
+                >
+                    Welcome Back to Zenith Bank
+                </Typography>
+                <Typography
+                    variant="h6"
+                    align="center"
+                    sx={{ color: '#f0f0f0', mb: 4 }}
+                >
+                    Please log in to your account
+                </Typography>
+
+                <Box
+                    component="form"
+                    onSubmit={handleSubmit}
+                    sx={{
+                        backgroundColor: 'white',
+                        padding: 4,
+                        borderRadius: '8px',
+                        boxShadow: 3,
+                    }}
+                >
+                    <Box sx={{ mb: 2 }}>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="Email"
                             required
+                            style={{
+                                width: '100%',
+                                padding: '12px',
+                                borderRadius: '4px',
+                                border: '1px solid #ccc',
+                            }}
                         />
+                    </Box>
+                    <Box sx={{ mb: 2 }}>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Password"
                             required
+                            style={{
+                                width: '100%',
+                                padding: '12px',
+                                borderRadius: '4px',
+                                border: '1px solid #ccc',
+                            }}
                         />
-                        <button className="login-button" onClick={handleSubmit}>Login</button>
-                        <span className="register-text" onClick={() => window.location.href = '/create-user'}>
-                            Don't have an account? Register here!
-                        </span>
-                    </div>
-                </div>
-            </nav>
+                    </Box>
+                    <StyledButton
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        type="submit"
+                        sx={{ py: 2 }}
+                    >
+                        Login
+                    </StyledButton>
 
-            <div className="login-container">
-                {error && <p className="error">{error}</p>}
-                {success && <p className="success">{success}</p>}
-            </div>
-        </div>
+                    {error && <Typography color="error" align="center" sx={{ mt: 2 }}>{error}</Typography>}
+                    {success && <Typography color="success" align="center" sx={{ mt: 2 }}>{success}</Typography>}
+
+                    <Typography
+                        align="center"
+                        sx={{ mt: 2, color: '#1976d2', cursor: 'pointer' }}
+                        onClick={() => window.location.href = '/create-user'}
+                    >
+                        Don't have an account? Register here!
+                    </Typography>
+                </Box>
+            </Container>
+        </Box>
     );
 };
 
