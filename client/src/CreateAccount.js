@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Box, Button, Container, Typography, Card, CardContent, CardActions, TextField } from '@mui/material';
+import { Box, Button, Container, Typography, Card, CardContent, CardActions, TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { styled } from '@mui/system';
 import { Link } from 'react-router-dom';
 
@@ -65,25 +65,37 @@ function CreateAccount() {
       <Container maxWidth="sm">
         <StyledCard>
           <CardContent>
-            <Typography variant="h4" align="center" gutterBottom sx={{ color: '#', fontWeight: 'bold' }}>
+            <Typography variant="h4" align="center" gutterBottom sx={{ fontWeight: 'bold' }}>
               Create New Account
             </Typography>
             <form onSubmit={createAccount}>
               <div>
-                <TextField
-                  select
-                  label="Account Type"
-                  value={accountType}
-                  onChange={(e) => setAccountType(e.target.value)}
-                  fullWidth
-                  required
-                  sx={{ mb: 3 }}
-                >
-                  <option value="" disabled>Select Account Type</option>
-                  <option value="Debit">Debit</option>
-                  <option value="Saving">Saving</option>
-                  <option value="Cheque">Cheque</option>
-                </TextField>
+                <FormControl fullWidth required sx={{ mb: 3 }}>
+                  <InputLabel id="account-type-label">Account Type</InputLabel>
+                  <Select
+                    labelId="account-type-label"
+                    value={accountType}
+                    onChange={(e) => setAccountType(e.target.value)}
+                    label="Account Type"
+                    displayEmpty
+                    sx={{
+                      '& .MuiSelect-select': {
+                        padding: '12px 14px', // Adjust padding as needed
+                        textAlign: 'center',   // Center the text
+                      },
+                      '& .MuiSelect-icon': {
+                        right: '12px',         // Adjust icon position
+                      },
+                    }}
+                  >
+                    <MenuItem value="" disabled>
+                      Select Account Type
+                    </MenuItem>
+                    <MenuItem value="Debit">Debit</MenuItem>
+                    <MenuItem value="Saving">Saving</MenuItem>
+                    <MenuItem value="Cheque">Cheque</MenuItem>
+                  </Select>
+                </FormControl>
               </div>
               <div>
                 <TextField
