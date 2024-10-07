@@ -26,8 +26,6 @@ function TransactionLogs() {
             acc[accountId].push(log);
             return acc;
           }, {});
-
-          console.log("Grouped Logs:", grouped); // Log the grouped logs
           setGroupedLogs(grouped); // Set the grouped logs
         }
 

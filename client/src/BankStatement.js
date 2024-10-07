@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Box, Container, Typography, Button, CircularProgress, TextField } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { Line, Bar } from 'react-chartjs-2'; // Import Chart.js components
+import { Line, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js';
-import jsPDF from 'jspdf'; // Import jsPDF
-import html2canvas from 'html2canvas'; // Import html2canvas
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 // Register chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 function BankStatement() {
-  const [statementData, setStatementData] = useState({ TransactionLogs: [] }); // Initialize with empty TransactionLogs
+  const [statementData, setStatementData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [startDate, setStartDate] = useState('');
@@ -217,14 +217,18 @@ function BankStatement() {
           <Typography variant="h6" gutterBottom>
             User ID: {statementData.UserID}
           </Typography>
-          {/* Ensure that AccountID is available before displaying */}
+
+          {/* List account IDs */}
           <Typography variant="h6" gutterBottom>
-            {statementData.AccountID ? `Account ID: ${statementData.AccountID}` : 'Account ID not available'}
+            Account IDs:
           </Typography>
-          {/* Ensure that TransactionID is available before displaying */}
-          <Typography variant="h6" gutterBottom>
-            {statementData.TransactionID ? `Transaction ID: ${statementData.TransactionID}` : 'Transaction ID not available'}
-          </Typography>
+          <ul>
+            {statementData.Accounts.map((account) => (
+              <li key={account._id}>
+                <Typography variant="body1">Account ID: {account._id}</Typography>
+              </li>
+            ))}
+          </ul>
         </Box>
 
         {/* Display transaction logs */}
@@ -242,93 +246,80 @@ function BankStatement() {
             Transaction Logs
           </Typography>
 
-          {/* Date filter section */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
-            <TextField
-              label="Start Date"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              sx={{ backgroundColor: '#fff', borderRadius: '5px' }}
-            />
-            <TextField
-              label="End Date"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              sx={{ backgroundColor: '#fff', borderRadius: '5px' }}
-            />
-            <Button variant="contained" color="primary" onClick={handleFilter}>
-              Filter
-            </Button>
-          </Box>
-
-          {statementData.TransactionLogs.length === 0 ? (
-            <Typography>No transaction logs found.</Typography>
-          ) : (
-            <ul>
-              {statementData.TransactionLogs.map((log, index) => (
-                <li key={index}>
-                  <Typography variant="body1">
-                    Amount: ${log.Amount.toFixed(2)} <br />
-                    Date: {new Date(log.Date).toLocaleDateString()} <br />
-                    Description: {log.Description}
-                  </Typography>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Box>
-
-        {/* Charts for deposits, withdrawals, and monthly spending */}
-        <Box
-          sx={{
-            backgroundColor: '#fff',
-            color: '#000',
-            borderRadius: '10px',
-            p: 3,
-            boxShadow: 4,
-          }}
-        >
-          <Button variant="contained" color="primary" onClick={toggleChartsVisibility}>
-            {chartsVisible ? 'Hide Charts' : 'Show Charts'}
+        {/* Date filter section */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+          <TextField
+            label="Start Date"
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            sx={{ backgroundColor: '#fff', borderRadius: '5px' }}
+          />
+          <TextField
+            label="End Date"
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            sx={{ backgroundColor: '#fff', borderRadius: '5px' }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleFilter}
+            sx={{ alignSelf: 'center' }}
+          >
+            Filter
           </Button>
-
-          {chartsVisible && (
-            <>
-              <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
-                Deposits
-              </Typography>
-              <Bar data={deposits} options={{ responsive: true }} />
-
-              <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
-                Withdrawals
-              </Typography>
-              <Bar data={withdrawals} options={{ responsive: true }} />
-
-              <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
-                Monthly Spending
-              </Typography>
-              <Line data={monthlySpending} options={{ responsive: true }} />
-            </>
-          )}
         </Box>
 
-        <Box sx={{ mt: 6, textAlign: 'center' }}>
-          <Link to="/" style={{ textDecoration: 'none' }}>
-            <Button variant="contained" color="primary" size="large">
-              Back to Home
-            </Button>
-          </Link>
+        <ul>
+          {statementData.TransactionLogs.map((log) => (
+            <li key={log._id}>
+              <Typography variant="body1">
+                <strong>Account ID:</strong> {log.AccountID} <br />
+                <strong>Date:</strong> {new Date(log.Date).toLocaleDateString()} <br />
+                <strong>Description:</strong> {log.Description} <br />
+                <strong>Amount:</strong> {log.Amount} <br />
+              </Typography>
+            </li>
+          ))}
+        </ul>
+      </Box>
+
+      {/* Toggle for charts */}
+      <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Button variant="contained" color="primary" onClick={toggleChartsVisibility}>
+          {chartsVisible ? 'Hide Charts' : 'Show Charts'}
+        </Button>
+      </Box>
+
+      {/* Display charts conditionally */}
+      {chartsVisible && (
+        <Box>
+          <Typography variant="h5" gutterBottom>
+            Monthly Spending Overview
+          </Typography>
+          <Line data={monthlySpending} />
+
+          <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
+            Deposits
+          </Typography>
+          <Bar data={deposits} />
+
+          <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
+            Withdrawals
+          </Typography>
+          <Bar data={withdrawals} />
         </Box>
-      </Container>
-    </Box>
+      )}
+    </Container>
+  </Box>
   );
 }
 
