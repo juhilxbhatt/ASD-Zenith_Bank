@@ -76,7 +76,6 @@ function CreateAccount() {
                     labelId="account-type-label"
                     value={accountType}
                     onChange={(e) => setAccountType(e.target.value)}
-                    label="Account Type"
                     displayEmpty
                     sx={{
                       '& .MuiSelect-select': {
@@ -89,7 +88,7 @@ function CreateAccount() {
                     }}
                   >
                     <MenuItem value="" disabled>
-                      Select Account Type
+                      
                     </MenuItem>
                     <MenuItem value="Debit">Debit</MenuItem>
                     <MenuItem value="Saving">Saving</MenuItem>
