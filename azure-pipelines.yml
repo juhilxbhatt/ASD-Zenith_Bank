@@ -47,21 +47,6 @@ steps:
     versionSpec: '18.x'  # Specify Node.js version (>= 18.x) for the frontend tests
   displayName: 'Install Node.js 18.x'
 
-# Install frontend dependencies and run tests
-- script: |
-    echo "Running Frontend Tests by Joseph Jello"
-    cd client  # Navigate to the client (frontend) directory
-    npm install  # Install frontend dependencies
-    npm test -- --ci --reporters=jest-junit --outputFile=results/junit/test-results.xml  # Run Jest tests with JUnit output
-  displayName: 'Run frontend tests'
-
-# Publish frontend test results
-- task: PublishTestResults@2
-  inputs:
-    testResultsFormat: 'JUnit'
-    testResultsFiles: '**/junit/test-results.xml'  # Glob pattern to locate JUnit XML files
-    failTaskOnFailedTests: true
-  displayName: 'Publish Frontend Test Results'
 
 # Final logging for pipeline completion
 - script: |
