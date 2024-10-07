@@ -23,9 +23,8 @@ def test_create_account(mock_accounts_collection, mock_users_collection, client)
     mock_inserted_id.inserted_id = "mock_account_id"
     mock_accounts_collection.insert_one.return_value = mock_inserted_id
 
-    # Mock the user_id in cookies
-    with client.session_transaction() as session:
-        session['user_id'] = 'hardcoded_user_id'  # Set the user_id in the session/cookies
+    # Set the user_id as a cookie directly
+    client.set_cookie('localhost', 'user_id', 'hardcoded_user_id')
 
     # Send the POST request to create an account
     response = client.post('/api/create_account', json={
@@ -42,9 +41,8 @@ def test_create_account(mock_accounts_collection, mock_users_collection, client)
 @patch('server.routes.transaction_logs_collection')
 @patch('server.routes.accounts_collection')
 def test_get_transaction_logs(mock_accounts_collection, mock_transaction_logs_collection, client):
-    # Mock the user_id in cookies
-    with client.session_transaction() as session:
-        session['user_id'] = 'hardcoded_user_id'
+    # Set the user_id as a cookie directly
+    client.set_cookie('localhost', 'user_id', 'hardcoded_user_id')
 
     # Mock the accounts lookup
     mock_accounts_collection.find.return_value = [{"_id": "mock_account_id"}]
@@ -73,6 +71,6 @@ def test_get_transaction_logs(mock_accounts_collection, mock_transaction_logs_co
 
     # Additional checks on the content of the response
     assert len(data['TransactionLogs']) > 0
-    assert data['TransactionLogs'][0]['Amount'] == 100.0
+    assert data['TransactionLogs'][0]['Amount'] == pytest.approx(100.0)
     assert data['TransactionLogs'][0]['Description'] == "Deposit"
     assert data['TransactionLogs'][0]['AccountID'] == "mock_account_id"
