@@ -29,9 +29,6 @@ users_collection = db["User"]
 transaction_logs_collection = db["TransactionLog"]
 transactions_collection = db['transactions']  # Define the transactions collection
 
-hardcoded_transaction_id = ObjectId("66daff5b464bf428046deaf0") # Replace this with the trasnaction ID from Login
-hardcoded_account_id = ObjectId("66dc239b9e87d6406371e602") # Replace this with the account ID from Login
-
 # Route to handle user login
 @api.route('/api/LoginPage', methods=['POST'])
 def login():
@@ -110,7 +107,6 @@ def create_account():
         # Prepare the account data
         new_account = {
             "userID": ObjectId(user_id),  # Use user_id from cookies
-            "transactionID": hardcoded_transaction_id,  # Assuming you have this value elsewhere
             "accountType": data['accountType'],
             "balance": float(data['balance']),
             "status": 'Active'
