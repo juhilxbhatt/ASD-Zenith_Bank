@@ -87,8 +87,22 @@ def create_user():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
 
+@api.route('/api/check_email', methods=['GET'])
+def check_email():
+    email = request.args.get('email')  # Get the email from the query parameter
 
+    if not email:
+        return jsonify({"error": "Email is required!"}), 400
+
+    # Check if the email already exists in the 'users' collection
+    existing_user = users_collection.find_one({"email": email})
+
+    if existing_user:
+        return jsonify({"exists": True}), 200  # Email exists
+    else:
+        return jsonify({"exists": False}), 200  # Email does not exist
 
 
 # Route to create a new account

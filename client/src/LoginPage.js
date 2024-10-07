@@ -6,6 +6,8 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [userName, setUserName] = useState(''); // State to store the user's name
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -22,15 +24,19 @@ const LoginPage = () => {
             const result = await response.json();
 
             if (response.ok) {
-                setSuccess('Login successful! Redirecting...');
+                setUserName(result.userName); // Set the user's name from the response
+                setSuccess(`Login successful! Welcome back!`);
                 setError('');
-                // Redirect after a short delay
                 setTimeout(() => {
-                    window.location.href = '/dashboard'; // Change to your desired redirect
+                    window.location.href = 'http://localhost:3000';
                 }, 2000);
             } else {
                 if (result.error) {
                     setError(result.error);
+                } else if (result.message === 'Error. User not found') {
+                    setError('Account not found. Please check your email.');
+                } else if (result.message === 'Invalid password') {
+                    setError('Invalid password. Please try again.');
                 } else {
                     setError('Invalid credentials, please try again.');
                 }
@@ -42,39 +48,65 @@ const LoginPage = () => {
         }
     };
 
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
+    };
+
     return (
-        <div>
-            <nav className="navbar">
-                <div className="navbar-content">
-                    <button className="navbar-button" onClick={() => window.location.href = '/login'}>
-                        Zenith Bank
-                    </button>
-                    <div className="login-inputs">
+        <div className="login-page">
+            <div className="login-container">
+                <h1>Zenith Bank</h1>
+                <form onSubmit={handleSubmit} className="login-form">
+                    <div className="form-group">
+                        <label htmlFor="email" className="form-label">Email</label>
                         <input
                             type="email"
+                            id="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Email"
+                            placeholder="email"
                             required
                         />
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Password"
-                            required
-                        />
-                        <button className="login-button" onClick={handleSubmit}>Login</button>
-                        <span className="register-text" onClick={() => window.location.href = '/create-user'}>
-                            Don't have an account? Register here!
-                        </span>
                     </div>
+                    <div className="form-group">
+                        <label htmlFor="password" className="form-label">Password</label>
+                        <div className="password-input-container">
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                id="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                placeholder="password"
+                            />
+                            <label className="show-password-label">
+                                <input
+                                    type="checkbox"
+                                    checked={showPassword}
+                                    onChange={togglePasswordVisibility}
+                                />
+                                Show Password
+                            </label>
+                        </div>
+                    </div>
+                    <button className="login-button" type="submit">Login</button>
+                    <span className="register-text" onClick={() => window.location.href = '/create-user'}>
+                        Don't have an account? Register here!
+                    </span>
+                </form>
+                <div className="message-container">
+                    {error && (
+                        <div className="error-container">
+                            <p className="error">{error}</p>
+                        </div>
+                    )}
+                    {success && (
+                        <div className="success-container">
+                            <h2>Success</h2>
+                            <p className="success">{success}</p>
+                        </div>
+                    )}
                 </div>
-            </nav>
-
-            <div className="login-container">
-                {error && <p className="error">{error}</p>}
-                {success && <p className="success">{success}</p>}
             </div>
         </div>
     );
