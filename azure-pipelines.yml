@@ -55,6 +55,14 @@ steps:
     npm test -- --ci --reporters=jest-junit --outputFile=results/junit/test-results.xml  # Run Jest tests with JUnit output
   displayName: 'Run frontend tests'
 
+# Publish frontend test results
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/junit/test-results.xml'  # Glob pattern to locate JUnit XML files
+    failTaskOnFailedTests: true
+  displayName: 'Publish Frontend Test Results'
+
 # Final logging for pipeline completion
 - script: |
     echo "Pipeline completed successfully by Joseph Jello"
