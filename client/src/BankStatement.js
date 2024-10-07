@@ -301,7 +301,7 @@ function BankStatement() {
 
       {/* Display charts conditionally */}
       {chartsVisible && (
-        <Box>
+        <Box sx={{ backgroundColor: 'white', padding: 2 }}>
           <Typography variant="h5" gutterBottom>
             Monthly Spending Overview
           </Typography>
