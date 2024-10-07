@@ -45,7 +45,7 @@ function Home() {
                 <button>Create New Account</button>
             </Link>
 
-            <Link to="/TransactionLogs">
+            <Link to="/transaction-logs">
                 <button>View Transaction Logs</button>
             </Link>
         </div>
