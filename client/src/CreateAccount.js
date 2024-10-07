@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Box, Button, Container, Typography, Card, CardContent, CardActions, TextField } from '@mui/material';
 import { styled } from '@mui/system';
+import { Link } from 'react-router-dom';
 
 // Customizing the card styles
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -106,6 +107,14 @@ function CreateAccount() {
                 </Button>
               </CardActions>
             </form>
+            {/* Button to go to Home */}
+            <Box sx={{ textAlign: 'center', mt: 2 }}>
+              <Link to="/Home" style={{ textDecoration: 'none', width: '100%' }}>
+                <Button variant="outlined" color="primary" fullWidth sx={{ py: 2 }}>
+                  Go to Home
+                </Button>
+              </Link>
+            </Box>
           </CardContent>
         </StyledCard>
       </Container>

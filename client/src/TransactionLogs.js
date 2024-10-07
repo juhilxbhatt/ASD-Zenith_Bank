@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Box, Button, Typography, Container, Card, CardContent, CardActions, Grid } from '@mui/material';
 import { styled } from '@mui/system';
+import { Link } from 'react-router-dom';
 
 // Custom Card for Transaction Log Item
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -155,6 +156,14 @@ function TransactionLogs() {
             </Typography>
           )
         )}
+        {/* Button to go to Home */}
+        <Box sx={{ background: '#FFF', textAlign: 'center', mt: 2 }}>
+          <Link to="/Home" style={{ textDecoration: 'none', width: '100%' }}>
+            <Button variant="outlined" color="primary" fullWidth sx={{ py: 2 }}>
+              Go to Home
+            </Button>
+          </Link>
+        </Box>
       </Container>
     </Box>
   );
