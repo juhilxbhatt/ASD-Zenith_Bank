@@ -2,7 +2,6 @@ trigger:
   branches:
     include:
       - '*'  # Trigger the pipeline on any branch commit
-
 pool:
   vmImage: 'ubuntu-latest'
 
