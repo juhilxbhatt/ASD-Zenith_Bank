@@ -28,6 +28,7 @@ function SchedulePayment() {
         fetchPayees();
     }, []);
 
+    //function handles 
     const handlePaymentTypeChange = (e) => {
         setPaymentType(e.target.value);
         if (e.target.value === "one-off") {
@@ -35,6 +36,7 @@ function SchedulePayment() {
         }
     };
 
+    //function handles 
     const handleRecurrenceChange = (e) => {
         setRecurrence(e.target.value);
         if (selectedDate) {
@@ -50,10 +52,13 @@ function SchedulePayment() {
         }
     };
 
+    //function handles the back button sending you to the home screen
     const handleBack = () => {
-        navigate(-1);
+        navigate('/Home');
     };
 
+
+    //this function handles the submit button while also implementing error handling wiht the try & catch
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -85,23 +90,23 @@ function SchedulePayment() {
 
         setError("");
 
-        try {
+        try {// After successful submission these jobs dne
             const response = await axios.post('/api/schedule_payment', paymentData);
             alert('Payment successfully Scheduled!');
-            // Reset form fields after successful submission
+            // Emptying form fields
             setAmount(""); 
             setPayee(""); 
             setSelectedDate("");
             setEndDate("");
             setRecurrence("weekly");
             setPaymentType("one-off");
-            navigate(-1);
+            navigate('/ViewScheduledPayments')//navigating to view the schedule page
         } catch (err) {
             setError(err.response?.data?.error || "An error occurred while scheduling the payment.");
         }
     };
-
     return (
+        //Form that is filled in which you see on the gui
         <div>
             <h1>Schedule Payment</h1>
             <form onSubmit={handleSubmit}>
@@ -114,10 +119,10 @@ function SchedulePayment() {
                             const value = parseFloat(e.target.value);
                             if (value > 0) {
                                 setAmount(e.target.value);
-                                setError(""); // Reset error if valid
+                                setError("");
                             } else {
                                 setAmount("");
-                                setError("Positive amount needs to be entered");
+                                setError("Please enter valid amount");
                             }
                         }}
                         placeholder="$0.00"
@@ -126,7 +131,7 @@ function SchedulePayment() {
                     />
                 </div>
                 <div className="form-group">
-                    <label>Transfer To:</label>
+                    <label>Transfer To:</label> 
                     <select
                         value={payee}
                         onChange={(e) => setPayee(e.target.value)}
@@ -153,22 +158,25 @@ function SchedulePayment() {
                     <input
                         type="date"
                         value={selectedDate}
+                        onFocus={(e) => e.target.showPicker()}
                         onChange={(e) => {
-                            setSelectedDate(e.target.value);
-                            if (recurrence === "weekly") {
-                                const newEndDate = new Date(e.target.value);
+                            const newSelectedDate = e.target.value;
+                            setSelectedDate(newSelectedDate);
+                            if (paymentType === "one-off") {
+                                setEndDate(newSelectedDate);
+                            } else if (recurrence === "weekly") {
+                                const newEndDate = new Date(newSelectedDate);
                                 newEndDate.setDate(newEndDate.getDate() + 7);
                                 setEndDate(newEndDate.toISOString().split('T')[0]);
                             } else if (recurrence === "monthly") {
-                                const newEndDate = new Date(e.target.value);
+                                const newEndDate = new Date(newSelectedDate);
                                 newEndDate.setMonth(newEndDate.getMonth() + 1);
                                 setEndDate(newEndDate.toISOString().split('T')[0]);
                             }
                         }}
-                        min={new Date().toISOString().split('T')[0]} // Set minimum date to today
+                        min={new Date().toISOString().split('T')[0]}
                     />
                 </div>
-
                 {paymentType === "recurring" && (
                     <>
                         <div className="form-group">
@@ -183,6 +191,7 @@ function SchedulePayment() {
                             <input
                                 type="date"
                                 value={endDate}
+                                onFocus={(e) => e.target.showPicker()}
                                 onChange={(e) => {
                                     if (e.target.value) {
                                         const minDate = recurrence === "weekly" 
@@ -191,7 +200,7 @@ function SchedulePayment() {
 
                                         if (new Date(e.target.value) >= minDate) {
                                             setEndDate(e.target.value);
-                                            setError(""); // Reset error if valid
+                                            setError("");
                                         } else {
                                             setError(`End date must be at least ${recurrence === "weekly" ? "a week" : "a month"} after the selected date.`);
                                         }
@@ -202,12 +211,11 @@ function SchedulePayment() {
                         </div>
                     </>
                 )}
-
-                {error && <p className="error">{error}</p>}
                 <button type="button" onClick={handleBack}>Back</button>
                 <button type="submit">Schedule Payment</button>
             </form>
-        </div>
+        </div>        
+                    
     );
 }
 

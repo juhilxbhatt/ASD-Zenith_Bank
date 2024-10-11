@@ -21,7 +21,7 @@ function AddPayee() {
     // const userId = Cookies.get(); //Gets the user ID from the cookie
     
     const newPayee = {
-      userId,
+      // userId,
       firstName,
       lastName,
       bankName, 

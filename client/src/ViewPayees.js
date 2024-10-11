@@ -17,17 +17,9 @@ const ViewPayee = () => {
     }, []);
 
     const fetchPayees = async () => {
-        const userId = Cookies.get('user_id');
-        try {
             const response = await fetch('/api/payees?userId=$userId');
-            if (!response.ok) {
-                throw new Error('Failed to fetch payees');
-            }
             const data = await response.json();
             setPayees(data);
-        } catch (error) {
-            setError(error.message);
-        }
     };
 
     const handleCheckboxChange = (payeeId) => {
@@ -53,7 +45,7 @@ const ViewPayee = () => {
             if (!response.ok) {
                 throw new Error('Failed to delete payees');
             }
-
+            setPayees((prevPayees) => prevPayees.filter(payee => !selectedPayees.has(payee._id)));
             // Refresh the payees list after deletion
             fetchPayees();
             setSelectedPayees(new Set()); // Reset selected payees

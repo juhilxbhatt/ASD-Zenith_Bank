@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+  
 const ViewScheduledPayments = () => {
     const navigate = useNavigate();
     const [payments, setPayments] = useState([]);
@@ -24,8 +24,12 @@ const ViewScheduledPayments = () => {
     }, []);
 
     const handleBack = () => {//Goes to the page before
-        navigate(-1);
+        navigate('/Home');
       };
+
+    const handleAnother = () => {
+        navigate('/SchedulePayment');
+    };
 
     const handleDeletePayment = async (paymentId) => {
         const confirmDelete = window.confirm('Are you sure you want to delete this payment?');
@@ -87,6 +91,7 @@ const ViewScheduledPayments = () => {
                 </tbody>
             </table>
             <button type="button" onClick={handleBack}>Back</button>
+            <button type="button" onClick={handleAnother}>Schedule another payment</button>
         </div>
     );
 };
