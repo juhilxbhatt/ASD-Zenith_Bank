@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Container, Box, Typography, TextField, Button, MenuItem, Select, InputLabel, FormControl, Alert, Grid, Paper } from '@mui/material';
 
 function SchedulePayment() {
     const navigate = useNavigate();
@@ -24,11 +25,9 @@ function SchedulePayment() {
                 console.error("Error fetching payees:", error);
             }
         };
-
         fetchPayees();
     }, []);
 
-    //function handles 
     const handlePaymentTypeChange = (e) => {
         setPaymentType(e.target.value);
         if (e.target.value === "one-off") {
@@ -36,7 +35,6 @@ function SchedulePayment() {
         }
     };
 
-    //function handles 
     const handleRecurrenceChange = (e) => {
         setRecurrence(e.target.value);
         if (selectedDate) {
@@ -52,13 +50,10 @@ function SchedulePayment() {
         }
     };
 
-    //function handles the back button sending you to the home screen
     const handleBack = () => {
         navigate('/');
     };
 
-
-    //this function handles the submit button while also implementing error handling wiht the try & catch
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -90,9 +85,9 @@ function SchedulePayment() {
 
         setError("");
 
-        try {// After successful submission these jobs dne
-            const response = await axios.post('/api/schedule_payment', paymentData);
-            alert('Payment successfully Scheduled!');
+        try {
+            await axios.post('/api/schedule_payment', paymentData);
+            setSuccessMessage("Payment successfully scheduled!");
             // Emptying form fields
             setAmount(""); 
             setPayee(""); 
@@ -100,122 +95,141 @@ function SchedulePayment() {
             setEndDate("");
             setRecurrence("weekly");
             setPaymentType("one-off");
-            navigate('/ViewScheduledPayments')//navigating to view the schedule page
+            navigate('/ViewScheduledPayments');
         } catch (err) {
             setError(err.response?.data?.error || "An error occurred while scheduling the payment.");
         }
     };
-    return (
-        //Form that is filled in which you see on the gui
-        <div>
-            <h1>Schedule Payment</h1>
-            <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                    <label>Amount:</label>
-                    <input
-                        type="number"
-                        value={amount}
-                        onChange={(e) => {
-                            const value = parseFloat(e.target.value);
-                            if (value > 0) {
-                                setAmount(e.target.value);
-                                setError("");
-                            } else {
-                                setAmount("");
-                                setError("Please enter valid amount");
-                            }
-                        }}
-                        placeholder="$0.00"
-                        className="amount-input"
-                        required
-                    />
-                </div>
-                <div className="form-group">
-                    <label>Transfer To:</label> 
-                    <select
-                        value={payee}
-                        onChange={(e) => setPayee(e.target.value)}
-                        required
-                    >
-                        <option value="">Select Payee</option>
-                        {payees.map((payee) => (
-                            <option key={payee._id} value={payee.first_name + ' ' + payee.last_name}>
-                                {payee.first_name} {payee.last_name} - {payee.bank_name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                
-                <div className="form-group">
-                    <label>Payment Type:</label>
-                    <select value={paymentType} onChange={handlePaymentTypeChange}>
-                        <option value="one-off">One-Off Payment</option>
-                        <option value="recurring">Recurring Payment</option>
-                    </select>
-                </div>
-                <div className="form-group">
-                    <label>Select Payment Date:</label>
-                    <input
-                        type="date"
-                        value={selectedDate}
-                        onFocus={(e) => e.target.showPicker()}
-                        onChange={(e) => {
-                            const newSelectedDate = e.target.value;
-                            setSelectedDate(newSelectedDate);
-                            if (paymentType === "one-off") {
-                                setEndDate(newSelectedDate);
-                            } else if (recurrence === "weekly") {
-                                const newEndDate = new Date(newSelectedDate);
-                                newEndDate.setDate(newEndDate.getDate() + 7);
-                                setEndDate(newEndDate.toISOString().split('T')[0]);
-                            } else if (recurrence === "monthly") {
-                                const newEndDate = new Date(newSelectedDate);
-                                newEndDate.setMonth(newEndDate.getMonth() + 1);
-                                setEndDate(newEndDate.toISOString().split('T')[0]);
-                            }
-                        }}
-                        min={new Date().toISOString().split('T')[0]}
-                    />
-                </div>
-                {paymentType === "recurring" && (
-                    <>
-                        <div className="form-group">
-                            <label>Recurrence:</label>
-                            <select value={recurrence} onChange={handleRecurrenceChange}>
-                                <option value="weekly">Weekly</option>
-                                <option value="monthly">Monthly</option>
-                            </select>
-                        </div>
-                        <div className="form-group">
-                            <label>End Date:</label>
-                            <input
-                                type="date"
-                                value={endDate}
-                                onFocus={(e) => e.target.showPicker()}
-                                onChange={(e) => {
-                                    if (e.target.value) {
-                                        const minDate = recurrence === "weekly" 
-                                            ? new Date(new Date(selectedDate).getTime() + 7 * 24 * 60 * 60 * 1000)
-                                            : new Date(new Date(selectedDate).getFullYear(), new Date(selectedDate).getMonth() + 1, new Date(selectedDate).getDate());
 
-                                        if (new Date(e.target.value) >= minDate) {
-                                            setEndDate(e.target.value);
-                                            setError("");
-                                        } else {
-                                            setError(`End date must be at least ${recurrence === "weekly" ? "a week" : "a month"} after the selected date.`);
-                                        }
-                                    }
-                                }}
-                                min={recurrence === "weekly" ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                            />
-                        </div>
-                    </>
-                )}
-                <button type="button" onClick={handleBack}>Back</button>
-                <button type="submit">Schedule Payment</button>
-            </form>
-        </div>        
-                    
+    return (
+        <Box sx={{ background: 'linear-gradient(to right, #2193b0, #6dd5ed)', minHeight: '100vh', py: 10 }}>
+            <Container maxWidth="sm">
+                <Paper elevation={4} sx={{ p: 4 }}>
+                    <Typography variant="h4" align="center" gutterBottom>
+                        Schedule Payment
+                    </Typography>
+
+                    {error && (
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                            {error}
+                        </Alert>
+                    )}
+
+                    {successMessage && (
+                        <Alert severity="success" sx={{ mb: 2 }}>
+                            {successMessage}
+                        </Alert>
+                    )}
+
+                    <form onSubmit={handleSubmit}>
+                        <Grid container spacing={3}>
+                            {/* Amount Input */}
+                            <Grid item xs={12}>
+                                <TextField
+                                    label="Amount"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    type="number"
+                                    fullWidth
+                                    required
+                                    InputProps={{
+                                        startAdornment: <Typography variant="body2" sx={{ pr: 1 }}>$</Typography>
+                                    }}
+                                    sx={{ mb: 2 }}
+                                />
+                            </Grid>
+
+                            {/* Payee Selection */}
+                            <Grid item xs={12}>
+                                <FormControl fullWidth sx={{ mb: 2 }}>
+                                    <InputLabel>Transfer To</InputLabel>
+                                    <Select
+                                        value={payee}
+                                        onChange={(e) => setPayee(e.target.value)}
+                                        required
+                                    >
+                                        <MenuItem value="">Select Payee</MenuItem>
+                                        {payees.map((payee) => (
+                                            <MenuItem key={payee._id} value={payee.first_name + ' ' + payee.last_name}>
+                                                {payee.first_name} {payee.last_name} - {payee.bank_name}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            {/* Payment Type */}
+                            <Grid item xs={12}>
+                                <FormControl fullWidth sx={{ mb: 2 }}>
+                                    <InputLabel>Payment Type</InputLabel>
+                                    <Select value={paymentType} onChange={handlePaymentTypeChange}>
+                                        <MenuItem value="one-off">One-Off Payment</MenuItem>
+                                        <MenuItem value="recurring">Recurring Payment</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            {/* Payment Date */}
+                            <Grid item xs={12}>
+                                <TextField
+                                    label="Select Payment Date"
+                                    type="date"
+                                    value={selectedDate}
+                                    onChange={(e) => setSelectedDate(e.target.value)}
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
+                                    fullWidth
+                                    required
+                                />
+                            </Grid>
+
+                            {/* Recurrence and End Date for Recurring Payments */}
+                            {paymentType === "recurring" && (
+                                <>
+                                    <Grid item xs={12}>
+                                        <FormControl fullWidth sx={{ mb: 2 }}>
+                                            <InputLabel>Recurrence</InputLabel>
+                                            <Select value={recurrence} onChange={handleRecurrenceChange}>
+                                                <MenuItem value="weekly">Weekly</MenuItem>
+                                                <MenuItem value="monthly">Monthly</MenuItem>
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>
+
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            label="End Date"
+                                            type="date"
+                                            value={endDate}
+                                            onChange={(e) => setEndDate(e.target.value)}
+                                            InputLabelProps={{
+                                                shrink: true,
+                                            }}
+                                            fullWidth
+                                            required
+                                        />
+                                    </Grid>
+                                </>
+                            )}
+
+                            {/* Submit and Back Buttons */}
+                            <Grid item xs={6}>
+                                <Button variant="outlined" fullWidth onClick={handleBack}>
+                                    Back
+                                </Button>
+                            </Grid>
+
+                            <Grid item xs={6}>
+                                <Button variant="contained" type="submit" fullWidth>
+                                    Schedule Payment
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </form>
+                </Paper>
+            </Container>
+        </Box>
     );
 }
 

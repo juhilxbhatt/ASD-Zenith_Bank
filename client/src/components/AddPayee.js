@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-// import Cookies from 'js-cookie'; 
-// import './App.css';
+import { Button, TextField, Box, Container, Typography, Grid, Paper } from '@mui/material';
 
 function AddPayee() {
-  //Stores the data from the form
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -14,61 +12,120 @@ function AddPayee() {
   const [accountBSB, setAccountBSB] = useState('');
   const [error, setError] = useState('');
 
-  //Creates the newPayee
+  // Creates the newPayee
   const newPayee = async (e) => {
     e.preventDefault();
-
-    // const userId = Cookies.get(); //Gets the user ID from the cookie
     
     const newPayee = {
-      // userId,
       firstName,
       lastName,
-      bankName, 
+      bankName,
       accountNumber,
       accountBSB,
     };
-    //Exception handling
+
     try {
       const response = await axios.post('/api/new_payee', newPayee);
       if (response.status === 200) {
         alert('Payee successfully added!');
-        navigate(-1)
+        navigate(-1);
       }
     } catch (error) {
       console.error('Invalid information entered', error);
+      setError('Error adding payee. Please try again.');
     }
-
   };
 
-  const handleBack = () => {//Goes to the page before
+  const handleBack = () => {
     navigate(-1);
   };
 
-
   return (
-  //   Add new payee information
-    <div> 
-      <h1>Add New Payee</h1>
-      <form onSubmit={newPayee}>
-        <div>
-          <label>First Name:</label>
-          <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required/>
-          <label>Last Name:</label>
-          <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required/>
-        </div>
-        <div>
-          <label>Bank Name:</label>
-          <input type="text" value={bankName} onChange={(e) => setBankName(e.target.value)} required/>
-          <label>Account Number:</label>
-          <input type="number" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} required/>
-          <label>Account BSB:</label>
-          <input type="number" value={accountBSB} onChange={(e) => setAccountBSB(e.target.value)} required/>
-        </div>
-        <button type="button" onClick={handleBack}>Back</button>
-        <button type="submit">Submit</button>
-      </form>
-    </div>
+    <Box sx={{ background: 'linear-gradient(to right, #2193b0, #6dd5ed)', minHeight: '100vh', py: 10 }}>
+      <Container maxWidth="sm">
+        <Paper elevation={4} sx={{ p: 4 }}>
+          <Typography variant="h4" align="center" gutterBottom>
+            Add New Payee
+          </Typography>
+
+          {error && (
+            <Typography variant="body1" color="error" gutterBottom>
+              {error}
+            </Typography>
+          )}
+
+          <form onSubmit={newPayee}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="First Name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  variant="outlined"
+                  fullWidth
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Last Name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  variant="outlined"
+                  fullWidth
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Bank Name"
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  variant="outlined"
+                  fullWidth
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Account Number"
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  type="number"
+                  variant="outlined"
+                  fullWidth
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Account BSB"
+                  value={accountBSB}
+                  onChange={(e) => setAccountBSB(e.target.value)}
+                  type="number"
+                  variant="outlined"
+                  fullWidth
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                <Button variant="outlined" color="primary" onClick={handleBack}>
+                  Back
+                </Button>
+                <Button type="submit" variant="contained" color="success">
+                  Submit
+                </Button>
+              </Grid>
+            </Grid>
+          </form>
+        </Paper>
+      </Container>
+    </Box>
   );
 }
 
