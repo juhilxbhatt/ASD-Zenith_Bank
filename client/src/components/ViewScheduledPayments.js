@@ -24,7 +24,7 @@ const ViewScheduledPayments = () => {
     }, []);
 
     const handleBack = () => {//Goes to the page before
-        navigate('/Home');
+        navigate('/');
       };
 
     const handleAnother = () => {

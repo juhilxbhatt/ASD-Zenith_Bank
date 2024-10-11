@@ -54,7 +54,7 @@ function SchedulePayment() {
 
     //function handles the back button sending you to the home screen
     const handleBack = () => {
-        navigate('/Home');
+        navigate('/');
     };
 
 

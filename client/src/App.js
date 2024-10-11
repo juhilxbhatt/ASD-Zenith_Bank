@@ -14,6 +14,11 @@ import LoginPage from './components/LoginPage';
 import CreateUser from './components/CreateUser';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import AddPayee from './components/AddPayee';
+import SchedulePayment from './components/SchedulePayment';
+import ViewPayees from './components/ViewPayees';
+import ViewScheduledPayments from './components/ViewScheduledPayments';
+
 
 const theme = createTheme({
   palette: {
@@ -32,36 +37,20 @@ const AppRoutes = () => {
     return (
         <Routes>
             {/* Protected Routes */}
-            <Route path="/" element={
-                <ProtectedRoute isAuthenticated={isAuthenticated}>
-                    <Home />
-                </ProtectedRoute>
-            } />
-            <Route path="/transaction-logs" element={
-                <ProtectedRoute isAuthenticated={isAuthenticated}>
-                    <TransactionLogs />
-                </ProtectedRoute>
-            } />
-            <Route path="/monthly-statement" element={
-                <ProtectedRoute isAuthenticated={isAuthenticated}>
-                    <MonthlyStatement />
-                </ProtectedRoute>
-            } />
-            <Route path="/transfer-deposit" element={
-                <ProtectedRoute isAuthenticated={isAuthenticated}>
-                    <TransferDeposit />
-                </ProtectedRoute>
-            } />
-            <Route path="/bank-statement" element={
-                <ProtectedRoute isAuthenticated={isAuthenticated}>
-                    <BankStatement />
-                </ProtectedRoute>
-            } />
 
             {/* Public Routes */}
             <Route path="/create-account" element={<CreateAccount />} />
+            <Route path="/transactionLogs" element={<TransactionLogs />} />
             <Route path="/login-page" element={<LoginPage />} />
             <Route path="/create-user" element={<CreateUser />} />
+            <Route path="/" element={<Home />} />"
+            <Route path="/monthly-statement" element={<MonthlyStatement />} />
+            <Route path="/transfer-deposit" element={<TransferDeposit />} />
+            <Route path="/add-payee" element={<AddPayee />} />
+            <Route path="/schedule-payment" element={<SchedulePayment />} />
+            <Route path="/view-payees" element={<ViewPayees />} />
+            <Route path="/view-scheduled-payments" element={<ViewScheduledPayments />} />
+            <Route path="/BankStatement" element={<BankStatement />} />
         </Routes>
     );
 };

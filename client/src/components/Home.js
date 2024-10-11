@@ -6,6 +6,9 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import PaymentIcon from '@mui/icons-material/Payment';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import ViewListIcon from '@mui/icons-material/ViewList';
 import { styled } from '@mui/system';
 
 // Customizing the card hover effect
@@ -113,7 +116,7 @@ function Home() {
                 </Typography>
               </CardContent>
               <CardActions>
-                <Link to="/TransactionLogs" style={{ textDecoration: 'none', width: '100%' }}>
+                <Link to="/transactionLogs" style={{ textDecoration: 'none', width: '100%' }}>
                   <Button
                     variant="contained"
                     color="secondary"
@@ -140,7 +143,7 @@ function Home() {
                 </Typography>
               </CardContent>
               <CardActions>
-                <Link to="/MonthlyStatement" style={{ textDecoration: 'none', width: '100%' }}>
+                <Link to="/monthly-statement" style={{ textDecoration: 'none', width: '100%' }}>
                   <Button
                     variant="contained"
                     color="info"
@@ -153,6 +156,33 @@ function Home() {
               </CardActions>
             </StyledCard>
           </Grid>
+
+        {/* Bank Statement */}
+        <Grid item xs={12} sm={6} md={3}>
+            <StyledCard sx={{ textAlign: 'center', borderRadius: '15px', boxShadow: 4 }}>
+              <CardContent>
+                <ReceiptIcon fontSize="large" sx={{ color: '#673ab7' }} />
+                <Typography variant="h5" sx={{ mt: 2, mb: 2 }}>
+                  Bank Statement
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Download your custom bank statements.
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Link to="/BankStatement" style={{ textDecoration: 'none', width: '100%' }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    sx={{ borderRadius: '0 0 15px 15px', py: 2 }}
+                  >
+                    View Statements
+                  </Button>
+                </Link>
+              </CardActions>
+            </StyledCard>
+        </Grid>
 
           {/* Transfer & Deposit */}
           <Grid item xs={12} sm={6} md={3}>
@@ -167,7 +197,7 @@ function Home() {
                 </Typography>
               </CardContent>
               <CardActions>
-                <Link to="/TransferDeposit" style={{ textDecoration: 'none', width: '100%' }}>
+                <Link to="/transfer-deposit" style={{ textDecoration: 'none', width: '100%' }}>
                   <Button
                     variant="contained"
                     color="success"
@@ -180,6 +210,115 @@ function Home() {
               </CardActions>
             </StyledCard>
           </Grid>
+
+          {/* Add Payee */}
+          <Grid item xs={12} sm={6} md={3}>
+            <StyledCard sx={{ textAlign: 'center', borderRadius: '15px', boxShadow: 4 }}>
+              <CardContent>
+                <PaymentIcon fontSize="large" sx={{ color: '#ff9800' }} />
+                <Typography variant="h5" sx={{ mt: 2, mb: 2 }}>
+                  Add Payee
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Add new payees for easy payments.
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Link to="/add-payee" style={{ textDecoration: 'none', width: '100%' }}>
+                  <Button
+                    variant="contained"
+                    color="warning"
+                    fullWidth
+                    sx={{ borderRadius: '0 0 15px 15px', py: 2 }}
+                  >
+                    Add Payee
+                  </Button>
+                </Link>
+              </CardActions>
+            </StyledCard>
+          </Grid>
+
+          {/* Schedule Payment */}
+          <Grid item xs={12} sm={6} md={3}>
+            <StyledCard sx={{ textAlign: 'center', borderRadius: '15px', boxShadow: 4 }}>
+              <CardContent>
+                <ScheduleIcon fontSize="large" sx={{ color: '#673ab7' }} />
+                <Typography variant="h5" sx={{ mt: 2, mb: 2 }}>
+                  Schedule Payment
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Schedule payments to your payees easily.
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Link to="/schedule-payment" style={{ textDecoration: 'none', width: '100%' }}>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    fullWidth
+                    sx={{ borderRadius: '0 0 15px 15px', py: 2 }}
+                  >
+                    Schedule Payment
+                  </Button>
+                </Link>
+              </CardActions>
+            </StyledCard>
+          </Grid>
+
+          {/* View Payees */}
+          <Grid item xs={12} sm={6} md={3}>
+            <StyledCard sx={{ textAlign: 'center', borderRadius: '15px', boxShadow: 4 }}>
+              <CardContent>
+                <ViewListIcon fontSize="large" sx={{ color: '#795548' }} />
+                <Typography variant="h5" sx={{ mt: 2, mb: 2 }}>
+                  View Payees
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  See your list of payees.
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Link to="/view-payees" style={{ textDecoration: 'none', width: '100%' }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    sx={{ borderRadius: '0 0 15px 15px', py: 2 }}
+                  >
+                    View Payees
+                  </Button>
+                </Link>
+              </CardActions>
+            </StyledCard>
+          </Grid>
+
+          {/* View Scheduled Payments */}
+          <Grid item xs={12} sm={6} md={3}>
+            <StyledCard sx={{ textAlign: 'center', borderRadius: '15px', boxShadow: 4 }}>
+              <CardContent>
+                <ScheduleIcon fontSize="large" sx={{ color: '#607d8b' }} />
+                <Typography variant="h5" sx={{ mt: 2, mb: 2 }}>
+                  Scheduled Payments
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  View your scheduled payments.
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Link to="/view-scheduled-payments" style={{ textDecoration: 'none', width: '100%' }}>
+                  <Button
+                    variant="contained"
+                    color="info"
+                    fullWidth
+                    sx={{ borderRadius: '0 0 15px 15px', py: 2 }}
+                  >
+                    View Scheduled Payments
+                  </Button>
+                </Link>
+              </CardActions>
+            </StyledCard>
+          </Grid>
+
         </Grid>
       </Container>
     </Box>

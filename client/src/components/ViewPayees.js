@@ -94,7 +94,7 @@ const ViewPayee = () => {
         }
     };
     const handleBack = () => {//Goes to the page before
-        navigate(-1);
+        navigate('/');
       };
 
     // Filter payees based on the search query
