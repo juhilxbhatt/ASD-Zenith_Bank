@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext'; // Import useAuth
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import Cookies from 'js-cookie'; // Import Cookies
 import './LoginPage.css';
 
 const LoginPage = () => {
@@ -30,7 +31,13 @@ const LoginPage = () => {
                 login(result.userName); // Call login with the user's name
                 setSuccess(`Login successful! Welcome back!`);
                 setError('');
-                navigate('/'); // Redirect to home
+                // Store the user ID in a cookie (expires in 0.1 days)
+                Cookies.set('user_id', result.user.id, { expires: 0.1 });
+
+                // Redirect after a short delay
+                setTimeout(() => {
+                    navigate('/'); // Redirect to home
+                }, 1000);
             } else {
                 if (result.error) {
                     setError(result.error);

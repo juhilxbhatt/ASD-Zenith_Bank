@@ -321,7 +321,7 @@ function BankStatement() {
 
         {/* Button to go to Home */}
         <Box sx={{ background: '#FFF', textAlign: 'center', mt: 2 }}>
-          <Link to="/Home" style={{ textDecoration: 'none', width: '100%' }}>
+          <Link to="/" style={{ textDecoration: 'none', width: '100%' }}>
             <Button variant="outlined" color="primary" fullWidth sx={{ py: 2 }}>
               Go to Home
             </Button>
