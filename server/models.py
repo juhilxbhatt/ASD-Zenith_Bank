@@ -12,7 +12,8 @@ class User(Document):
 
     def to_json(self):
         return {
-            "name": self.name,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
             "email": self.email,
             "address": self.address
         }

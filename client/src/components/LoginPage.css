@@ -1,0 +1,101 @@
+body {
+  background-color: #000;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full height of the viewport */
+}
+
+.login-container {
+  background-color: #1a1a1a; /* Dark background for the form container */
+  padding: 20px; /* Add some padding */
+  border-radius: 8px; /* Rounded corners for the container */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Shadow for depth */
+  width: 300px; /* Fixed width for the container */
+  text-align: center; /* Center align text */
+}
+
+h1 {
+  margin-bottom: 20px; /* Space below the title */
+  font-size: 24px; /* Title size */
+}
+
+.form-group {
+  margin-bottom: 15px; /* Space between form groups */
+}
+
+.form-label {
+  font-size: 14px; /* Adjust label size */
+  margin-bottom: 5px; /* Space between label and input */
+  width: 70px; /* Set a smaller width for the label */
+  display: inline-block; /* Ensures the width is respected */
+}
+
+input {
+  padding: 10px; /* Increased padding for inputs */
+  border: 1px solid #333; /* Dark border for inputs */
+  border-radius: 4px; /* Rounded corners */
+  background-color: #fff; /* White background for inputs */
+  color: #000; /* Black text color inside inputs */
+  font-size: 14px; /* Input font size */
+  width: calc(100% - 20px); /* Full width for inputs, accounting for padding */
+}
+
+.password-input-container {
+  display: flex;
+  align-items: center; /* Center items vertically */
+}
+
+.show-password-label {
+  margin-left: 10px; /* Space between input and checkbox label */
+  font-size: 14px; /* Label size for the checkbox */
+}
+
+.login-button {
+  padding: 12px 25px; /* Increased padding for a fatter button */
+  border: none; /* Remove border */
+  border-radius: 4px; /* Rounded corners */
+  background-color: #007bff; /* Bootstrap primary color */
+  color: #fff; /* White text for button */
+  font-size: 16px; /* Button text size */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s; /* Smooth transition */
+  margin-top: 10px; /* Space above the button */
+}
+
+.login-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+.register-text {
+  margin-top: 10px; /* Space above the register text */
+  cursor: pointer; /* Pointer cursor */
+  color: #007bff; /* Blue color for register text */
+  font-size: 14px; /* Font size */
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.register-text:hover {
+  color: #00f; /* Change this to the color you want on hover (e.g., blue) */
+}
+
+.message-container {
+  margin-top: 20px; /* Space between inputs and messages */
+}
+
+.error {
+  color: #ff4d4d; /* Red color for error messages */
+  margin-top: 10px; /* Space above the error message */
+}
+
+.success {
+  color: #28a745; /* Green color for success messages */
+  margin-top: 10px; /* Space above the success message */
+}
