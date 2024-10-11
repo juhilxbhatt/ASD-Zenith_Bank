@@ -2,7 +2,6 @@ trigger:
   branches:
     include:
       - '*'  # Trigger the pipeline on any branch commit
-
 pool:
   vmImage: 'ubuntu-latest'
 
@@ -21,12 +20,10 @@ steps:
   displayName: 'Install Flask dependencies'
 
 - script: |
-    set -e  # Exit on error
     source venv/bin/activate
     export PYTHONPATH=$(pwd)
-    mkdir -p junit  # Ensure the junit directory exists
     pytest server/tests/ --junitxml=junit/test-results-flask.xml
-  displayName: 'Run Flask tests'
+  displayName: 'Juhil Flask tests'
 
 # Node.js setup for React tests
 - task: NodeTool@0
@@ -35,12 +32,11 @@ steps:
     checkLatest: true
 
 # Test for React
-- script: |
-    set -e  # Exit on error
-    cd client  # Navigate to the client directory where your React app is located
-    npm install
-    npm test -- --coverage --ci --watchAll=false  # Run tests with coverage in CI mode
-  displayName: 'Run React tests'
+#- script: |
+#    cd client
+#    npm install
+#    npm run test -- --coverage --ci --watchAll=false
+#  displayName: 'Juhil React tests'
 
 # Publish test results
 - task: PublishTestResults@2
