@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Button, Typography, Container, Card, CardContent, CardActions, Grid } from '@mui/material';
+import { Box, Button, Typography, Container, Card, CardContent, CardActions, Grid, TextField } from '@mui/material';
 import { styled } from '@mui/system';
 import { Link } from 'react-router-dom';
 
@@ -19,6 +19,7 @@ function TransactionLogs() {
   const [groupedLogs, setGroupedLogs] = useState({});
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [accounts, setAccounts] = useState([]); // State to hold accounts
+  const [searchTerm, setSearchTerm] = useState(''); // State for search input
 
   useEffect(() => {
     // Fetch transaction logs from the backend
@@ -57,6 +58,13 @@ function TransactionLogs() {
 
   // Get a list of all account IDs
   const accountIds = accounts.map(account => account._id.toString()); // Make sure to convert ObjectId to string
+
+  // Filter the transaction logs by the search term
+  const filteredLogs = selectedAccount && groupedLogs[selectedAccount]
+    ? groupedLogs[selectedAccount].filter((log) =>
+        log.Description.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : [];
 
   return (
     <Box
@@ -123,9 +131,20 @@ function TransactionLogs() {
             <Typography variant="h5" align="center" sx={{ color: '#fff', mb: 3 }}>
               Transactions for Account {selectedAccount}
             </Typography>
-            {groupedLogs[selectedAccount] && groupedLogs[selectedAccount].length > 0 ? (
+
+            {/* Search field for filtering descriptions */}
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Search by description"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{ mb: 3, backgroundColor: '#fff' }}
+            />
+
+            {filteredLogs.length > 0 ? (
               <Grid container spacing={2}>
-                {groupedLogs[selectedAccount].map((log, index) => (
+                {filteredLogs.map((log, index) => (
                   <Grid item xs={12} key={index}>
                     <StyledCard>
                       <CardContent>
@@ -145,7 +164,7 @@ function TransactionLogs() {
               </Grid>
             ) : (
               <Typography variant="body1" align="center" sx={{ color: '#f0f0f0' }}>
-                No transactions for this account.
+                No transactions matching the search criteria.
               </Typography>
             )}
           </Box>
@@ -156,6 +175,7 @@ function TransactionLogs() {
             </Typography>
           )
         )}
+
         {/* Button to go to Home */}
         <Box sx={{ background: '#FFF', textAlign: 'center', mt: 2 }}>
           <Link to="/" style={{ textDecoration: 'none', width: '100%' }}>
