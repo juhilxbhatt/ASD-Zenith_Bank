@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Button, Typography, Container, Card, CardContent, CardActions, Grid, TextField } from '@mui/material';
+import { Box, Button, Typography, Container, Card, CardContent, CardActions, Grid, TextField, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
 import { styled } from '@mui/system';
 import { Link } from 'react-router-dom';
 
@@ -20,6 +20,8 @@ function TransactionLogs() {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [accounts, setAccounts] = useState([]); // State to hold accounts
   const [searchTerm, setSearchTerm] = useState(''); // State for search input
+  const [dateFilter, setDateFilter] = useState(''); // State for date filter
+  const [amountFilter, setAmountFilter] = useState(''); // State for amount filter
 
   useEffect(() => {
     // Fetch transaction logs from the backend
@@ -59,11 +61,42 @@ function TransactionLogs() {
   // Get a list of all account IDs
   const accountIds = accounts.map(account => account._id.toString()); // Make sure to convert ObjectId to string
 
-  // Filter the transaction logs by the search term
+  // Define filtering logic
+  const filterLogs = (logs) => {
+    return logs
+      .filter(log => log.Description.toLowerCase().includes(searchTerm.toLowerCase())) // Filter by description
+      .filter(log => {
+        if (!dateFilter) return true; // If no date filter selected, return all
+        const logDate = new Date(log.Date);
+        if (dateFilter === 'last7Days') {
+          const now = new Date();
+          const sevenDaysAgo = new Date(now.setDate(now.getDate() - 7));
+          return logDate >= sevenDaysAgo;
+        } else if (dateFilter === 'last30Days') {
+          const now = new Date();
+          const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
+          return logDate >= thirtyDaysAgo;
+        } else if (dateFilter === 'thisYear') {
+          const thisYear = new Date().getFullYear();
+          return logDate.getFullYear() === thisYear;
+        }
+        return true;
+      })
+      .filter(log => {
+        if (!amountFilter) return true; // If no amount filter selected, return all
+        if (amountFilter === 'low') {
+          return log.Amount < 50; // Transactions less than $50
+        } else if (amountFilter === 'medium') {
+          return log.Amount >= 50 && log.Amount <= 200; // Transactions between $50 and $200
+        } else if (amountFilter === 'high') {
+          return log.Amount > 200; // Transactions greater than $200
+        }
+        return true;
+      });
+  };
+
   const filteredLogs = selectedAccount && groupedLogs[selectedAccount]
-    ? groupedLogs[selectedAccount].filter((log) =>
-        log.Description.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    ? filterLogs(groupedLogs[selectedAccount])
     : [];
 
   return (
@@ -141,6 +174,40 @@ function TransactionLogs() {
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={{ mb: 3, backgroundColor: '#fff' }}
             />
+
+            {/* Filters for date and amount */}
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Date Filter</InputLabel>
+                  <Select
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    label="Date Filter"
+                  >
+                    <MenuItem value="">All Dates</MenuItem>
+                    <MenuItem value="last7Days">Last 7 Days</MenuItem>
+                    <MenuItem value="last30Days">Last 30 Days</MenuItem>
+                    <MenuItem value="thisYear">This Year</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Amount Filter</InputLabel>
+                  <Select
+                    value={amountFilter}
+                    onChange={(e) => setAmountFilter(e.target.value)}
+                    label="Amount Filter"
+                  >
+                    <MenuItem value="">All Amounts</MenuItem>
+                    <MenuItem value="low">Less than $50</MenuItem>
+                    <MenuItem value="medium">$50 to $200</MenuItem>
+                    <MenuItem value="high">More than $200</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
 
             {filteredLogs.length > 0 ? (
               <Grid container spacing={2}>
