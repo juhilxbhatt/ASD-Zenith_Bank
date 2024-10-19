@@ -173,6 +173,7 @@ function TransactionLogs() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={{ mb: 3, backgroundColor: '#fff' }}
+              label="Search Description"
             />
 
             {/* Filters for date and amount */}
@@ -211,19 +212,52 @@ function TransactionLogs() {
 
             {filteredLogs.length > 0 ? (
               <Grid container spacing={2}>
+                {/* Headings for transaction data */}
+                <Grid item xs={12}>
+                  <Typography variant="h6" sx={{ color: '#fff', mb: 2 }}>
+                    Transaction Details
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={4}>
+                      <Typography variant="body1" sx={{ color: '#fff' }}>
+                        <strong>Amount</strong>
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Typography variant="body1" sx={{ color: '#fff' }}>
+                        <strong>Date</strong>
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Typography variant="body1" sx={{ color: '#fff' }}>
+                        <strong>Description</strong>
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Grid>
+
+                {/* Transaction logs */}
                 {filteredLogs.map((log, index) => (
                   <Grid item xs={12} key={index}>
                     <StyledCard>
                       <CardContent>
-                        <Typography variant="body1">
-                          <strong>Amount:</strong> ${log.Amount.toFixed(2)}
-                        </Typography>
-                        <Typography variant="body1">
-                          <strong>Date:</strong> {new Date(log.Date).toLocaleDateString()}
-                        </Typography>
-                        <Typography variant="body1">
-                          <strong>Description:</strong> {log.Description}
-                        </Typography>
+                        <Grid container spacing={2}>
+                          <Grid item xs={4}>
+                            <Typography variant="body1">
+                              ${log.Amount.toFixed(2)}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={4}>
+                            <Typography variant="body1">
+                              {new Date(log.Date).toLocaleDateString()}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={4}>
+                            <Typography variant="body1">
+                              {log.Description}
+                            </Typography>
+                          </Grid>
+                        </Grid>
                       </CardContent>
                     </StyledCard>
                   </Grid>
@@ -231,7 +265,7 @@ function TransactionLogs() {
               </Grid>
             ) : (
               <Typography variant="body1" align="center" sx={{ color: '#f0f0f0' }}>
-                No transactions matching the search criteria.
+                No transactions for this account.
               </Typography>
             )}
           </Box>
