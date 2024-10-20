@@ -1,6 +1,6 @@
 import pytest
 from flask import Flask
-from server.routes import api
+from routes import api
 from unittest.mock import patch, MagicMock
 
 
@@ -14,8 +14,8 @@ def client():
     yield client
 
 
-@patch('server.routes.accounts_collection')
-@patch('server.routes.users_collection')  # Mocking users_collection to check user existence
+@patch('routes.accounts_collection')
+@patch('routes.users_collection')  # Mocking users_collection to check user existence
 def test_create_account(mock_users_collection, mock_accounts_collection, client):
     # Mock data for creating an account
     data = {
@@ -42,8 +42,8 @@ def test_create_account(mock_users_collection, mock_accounts_collection, client)
     assert b'Account created successfully!' in response.data
 
 
-@patch('server.routes.accounts_collection')
-@patch('server.routes.users_collection')  # Mocking users_collection
+@patch('routes.accounts_collection')
+@patch('routes.users_collection')  # Mocking users_collection
 def test_create_account_user_not_found(mock_users_collection, mock_accounts_collection, client):
     # Mock data for creating an account
     data = {
@@ -65,8 +65,8 @@ def test_create_account_user_not_found(mock_users_collection, mock_accounts_coll
     assert b'User not found!' in response.data
 
 
-@patch('server.routes.accounts_collection')
-@patch('server.routes.users_collection')  # Mocking users_collection
+@patch('routes.accounts_collection')
+@patch('routes.users_collection')  # Mocking users_collection
 def test_create_account_invalid_data(mock_users_collection, mock_accounts_collection, client):
     # Mock data for creating an account with invalid balance
     data = {
@@ -88,8 +88,8 @@ def test_create_account_invalid_data(mock_users_collection, mock_accounts_collec
     assert b'Invalid data provided!' in response.data
 
 
-@patch('server.routes.accounts_collection')
-@patch('server.routes.users_collection')  # Mocking users_collection
+@patch('routes.accounts_collection')
+@patch('routes.users_collection')  # Mocking users_collection
 def test_create_account_database_insertion_failure(mock_users_collection, mock_accounts_collection, client):
     # Mock data for creating an account
     data = {
