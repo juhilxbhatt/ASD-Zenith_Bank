@@ -1,118 +1,130 @@
 import pytest
-from flask import Flask
-from routes import api
 from unittest.mock import patch, MagicMock
-
+from flask import Flask
+from bson import ObjectId  # Import ObjectId from bson
+from routes import api  # Assuming this is where your blueprint is registered
 
 @pytest.fixture
 def client():
-    # Create a Flask app instance for testing
     app = Flask(__name__)
     app.register_blueprint(api)
     app.config['TESTING'] = True
     client = app.test_client()
     yield client
 
-
-@patch('routes.accounts_collection')
-@patch('routes.users_collection')  # Mocking users_collection to check user existence
-def test_create_account(mock_users_collection, mock_accounts_collection, client):
+# 1. Test case for missing user ID in cookies
+def test_create_account_missing_user_id(client):
     # Mock data for creating an account
     data = {
-        "userID": "66dba291464bf428046deaf2",  # Example ObjectID
-        "transactionID": "66daff5b464bf428046deaf0",
-        "accountType": "Saving",
-        "balance": 1000.0,
-        "status": "Active"
+        "accountType": "Savings",
+        "balance": 1000.00
     }
 
-    # Mock the user existence check
-    mock_users_collection.find_one.return_value = {'_id': '66dba291464bf428046deaf2'}
-
-    # Mock the insert_one method to return a successful result
-    mock_result = MagicMock()
-    mock_result.inserted_id = "66daff5b464bf428046deaf0"
-    mock_accounts_collection.insert_one.return_value = mock_result
-
-    # Perform the POST request to create an account
-    response = client.post('/api/create_account', json=data, headers={'Cookie': 'userID=66dba291464bf428046deaf2'})
-    
-    # Assert the response status code and message
-    assert response.status_code == 200
-    assert b'Account created successfully!' in response.data
-
-
-@patch('routes.accounts_collection')
-@patch('routes.users_collection')  # Mocking users_collection
-def test_create_account_user_not_found(mock_users_collection, mock_accounts_collection, client):
-    # Mock data for creating an account
-    data = {
-        "userID": "66dba291464bf428046deaf2",  # Example ObjectID
-        "transactionID": "66daff5b464bf428046deaf0",
-        "accountType": "Saving",
-        "balance": 1000.0,
-        "status": "Active"
-    }
-
-    # Mock the user existence check to return None
-    mock_users_collection.find_one.return_value = None
-
-    # Perform the POST request to create an account
+    # Send POST request without user_id cookie
     response = client.post('/api/create_account', json=data)
-    
-    # Assert the response status code and message
-    assert response.status_code == 404
-    assert b'User not found!' in response.data
 
+    # Assert that the response status is 400 (Bad Request) and the appropriate message is returned
+    assert response.status_code == 400
+    assert b"User ID not found in cookies!" in response.data
 
-@patch('routes.request.cookies.get')
+# 2. Test case for successful account creation
 @patch('routes.accounts_collection')
 @patch('routes.users_collection')
-def test_create_account_invalid_data(mock_users_collection, mock_accounts_collection, mock_cookies, client):
-    # Mock the cookie to return the userID
-    mock_cookies.return_value = '66dba291464bf428046deaf2'
+def test_create_account_success(mock_users_collection, mock_accounts_collection, client):
+    # Mock the user lookup to return a valid user
+    user_id = str(ObjectId())
+    mock_users_collection.find_one.return_value = {"_id": user_id}
 
-    # Mock data for creating an account with invalid balance
-    data = {
-        "userID": "66dba291464bf428046deaf2",  # Example ObjectID
-        "transactionID": "66daff5b464bf428046deaf0",
-        "accountType": "Saving",
-        "balance": "invalid_balance",  # Invalid balance
-        "status": "Active"
-    }
+    # Mock the account insertion
+    mock_result = MagicMock()
+    mock_result.inserted_id = ObjectId()
+    mock_accounts_collection.insert_one.return_value = mock_result
 
-    # Mock the user existence check
-    mock_users_collection.find_one.return_value = {'_id': '66dba291464bf428046deaf2'}
-
-    # Perform the POST request to create an account
-    response = client.post('/api/create_account', json=data)
-
-    # Assert the response status code and error message (update based on your API's error handling)
-    assert response.status_code == 400  # Assuming you handle invalid data as a 400 error
-    assert b'Invalid data provided!' in response.data
-
-
-@patch('routes.accounts_collection')
-@patch('routes.users_collection')  # Mocking users_collection
-def test_create_account_database_insertion_failure(mock_users_collection, mock_accounts_collection, client):
     # Mock data for creating an account
     data = {
-        "userID": "66dba291464bf428046deaf2",  # Example ObjectID
-        "transactionID": "66daff5b464bf428046deaf0",
-        "accountType": "Saving",
-        "balance": 1000.0,
-        "status": "Active"
+        "accountType": "Savings",
+        "balance": 1000.00
     }
 
-    # Mock the user existence check
-    mock_users_collection.find_one.return_value = {'_id': '66dba291464bf428046deaf2'}
+    # Set the user_id as a cookie directly
+    client.set_cookie('localhost', 'user_id', user_id)
 
-    # Mock the insert_one method to raise an error
-    mock_accounts_collection.insert_one.side_effect = Exception("Database insertion failed")
-
-    # Perform the POST request to create an account
+    # Send the POST request to create an account
     response = client.post('/api/create_account', json=data)
 
-    # Assert the response status code and message
+    # Assert that the response status is 200 (OK) and the success message is returned
+    assert response.status_code == 200
+    assert b"Account created successfully!" in response.data
+    assert b"account_id" in response.data
+
+# 3. Test case for user not found
+@patch('routes.accounts_collection')
+@patch('routes.users_collection')
+def test_create_account_user_not_found(mock_users_collection, mock_accounts_collection, client):
+    # Mock the user lookup to return None (user not found)
+    mock_users_collection.find_one.return_value = None
+
+    # Mock data for creating an account
+    data = {
+        "accountType": "Savings",
+        "balance": 1000.00
+    }
+
+    # Set a valid user_id as a cookie
+    client.set_cookie('localhost', 'user_id', str(ObjectId()))
+
+    # Send the POST request to create an account
+    response = client.post('/api/create_account', json=data)
+
+    # Assert that the response status is 404 (Not Found) and the appropriate message is returned
+    assert response.status_code == 404
+    assert b"User not found!" in response.data
+
+# 4. Test case for invalid balance (non-numeric value)
+@patch('routes.accounts_collection')
+@patch('routes.users_collection')
+def test_create_account_invalid_balance(mock_users_collection, mock_accounts_collection, client):
+    # Mock the user lookup to return a valid user
+    mock_users_collection.find_one.return_value = {"_id": str(ObjectId())}
+
+    # Mock data for creating an account with invalid balance (non-numeric)
+    data = {
+        "accountType": "Savings",
+        "balance": "invalid_balance"
+    }
+
+    # Set a valid user_id as a cookie
+    client.set_cookie('localhost', 'user_id', str(ObjectId()))
+
+    # Send the POST request to create an account
+    response = client.post('/api/create_account', json=data)
+
+    # Assert that the response status is 500 (Internal Server Error) due to invalid balance
     assert response.status_code == 500
-    assert b'Something went wrong!' in response.data
+    assert b"could not convert string to float" in response.data  # Error message from Python's float() function
+
+# 5. Test case for database insertion failure
+@patch('routes.accounts_collection')
+@patch('routes.users_collection')
+def test_create_account_db_insertion_failure(mock_users_collection, mock_accounts_collection, client):
+    # Mock the user lookup to return a valid user
+    mock_users_collection.find_one.return_value = {"_id": str(ObjectId())}
+
+    # Mock the account insertion to raise an exception
+    mock_accounts_collection.insert_one.side_effect = Exception("Database insertion failed")
+
+    # Mock data for creating an account
+    data = {
+        "accountType": "Savings",
+        "balance": 1000.00
+    }
+
+    # Set a valid user_id as a cookie
+    client.set_cookie('localhost', 'user_id', str(ObjectId()))
+
+    # Send the POST request to create an account
+    response = client.post('/api/create_account', json=data)
+
+    # Assert that the response status is 500 (Internal Server Error) due to database error
+    assert response.status_code == 500
+    assert b"Database insertion failed" in response.data
