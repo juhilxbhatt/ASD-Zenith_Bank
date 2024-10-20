@@ -16,19 +16,19 @@ def client():
 @patch('server.routes.users_collection')
 @patch('server.routes.accounts_collection')
 def test_create_account(mock_accounts_collection, mock_users_collection, client):
-    # Use a valid ObjectId
+    # Use a valid ObjectId for the user
     valid_user_id = ObjectId()  # Create an ObjectId directly
 
     # Mock the user lookup to return a valid user with an ObjectId
     mock_users_collection.find_one.return_value = {"_id": valid_user_id}
 
-    # Mock the account insertion
+    # Mock the account insertion with a valid ObjectId
     mock_inserted_id = MagicMock()
-    mock_inserted_id.inserted_id = ObjectId("mock_account_id")  # Ensure it's an ObjectId
+    mock_inserted_id.inserted_id = ObjectId()  # Generate a new valid ObjectId
     mock_accounts_collection.insert_one.return_value = mock_inserted_id
 
     # Set the user_id as a cookie directly
-    client.set_cookie('localhost', 'user_id', str(valid_user_id))  # Set cookie correctly
+    client.set_cookie('localhost', 'user_id', str(valid_user_id))
 
     # Send the POST request to create an account
     response = client.post('/api/create_account', json={
@@ -39,7 +39,7 @@ def test_create_account(mock_accounts_collection, mock_users_collection, client)
     # Check that the response status code is 200
     assert response.status_code == 200
     assert response.get_json()['message'] == "Account created successfully!"
-    assert response.get_json()['account_id'] == "mock_account_id"
+    assert response.get_json()['account_id'] == str(mock_inserted_id.inserted_id)  # Ensure the ID is compared correctly
 
 @patch('routes.transaction_logs_collection')
 @patch('routes.accounts_collection')
