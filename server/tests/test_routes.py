@@ -15,7 +15,8 @@ def client():
 
 @patch('server.routes.users_collection')
 @patch('server.routes.accounts_collection')
-def test_create_account(mock_accounts_collection, mock_users_collection, client):
+@patch('server.routes.transaction_logs_collection')
+def test_create_account(mock_transaction_logs_collection, mock_accounts_collection, mock_users_collection, client):
     # Create a valid ObjectId for the user
     valid_user_id = ObjectId()  # Use ObjectId directly
     
@@ -26,7 +27,7 @@ def test_create_account(mock_accounts_collection, mock_users_collection, client)
     mock_inserted_id = MagicMock()
     mock_inserted_id.inserted_id = ObjectId()  # Generate a new valid ObjectId
     mock_accounts_collection.insert_one.return_value = mock_inserted_id
-    
+
     # Set the user_id as a cookie directly
     client.set_cookie('user_id', str(valid_user_id))  # Ensure it's a string
     
@@ -40,6 +41,10 @@ def test_create_account(mock_accounts_collection, mock_users_collection, client)
     assert response.status_code == 200
     assert response.get_json()['message'] == "Account created successfully!"
     assert response.get_json()['account_id'] == str(mock_inserted_id.inserted_id)  # Ensure the ID is compared correctly
+
+    # Additionally, you can validate the transaction logs collection if necessary
+    # This part is optional and can be customized based on what you want to verify
+    mock_transaction_logs_collection.find.assert_not_called()  # Ensure no transaction log is queried during account creation
 
 @patch('routes.transaction_logs_collection')
 @patch('routes.accounts_collection')
