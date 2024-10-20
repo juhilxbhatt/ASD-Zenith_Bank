@@ -8,12 +8,11 @@ from routes import api
 @pytest.fixture
 def client():
     app = Flask(__name__)
+    app.register_blueprint(api)  # Ensure the 'api' blueprint is registered
     app.config['TESTING'] = True
-    app.register_blueprint(api)  # Register the blueprint containing the routes
     client = app.test_client()
     yield client
 
-# Update test for create_account route
 @patch('server.routes.users_collection')
 @patch('server.routes.accounts_collection')
 def test_create_account(mock_accounts_collection, mock_users_collection, client):
@@ -49,7 +48,7 @@ def test_get_transaction_logs(mock_accounts_collection, mock_transaction_logs_co
     valid_user_id = str(ObjectId())
 
     # Set the user_id as a cookie directly on the client
-    client.set_cookie('localhost', 'user_id', valid_user_id)
+    client.set_cookie('user_id', valid_user_id)
 
     # Mock the accounts lookup to return account ids for the user
     mock_account_id = ObjectId()
