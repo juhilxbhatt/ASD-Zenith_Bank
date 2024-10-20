@@ -104,15 +104,18 @@ def check_email():
         return jsonify({"exists": False}), 200  # Email does not exist
 
 
-# Route to create a new account
 @api.route('/api/create_account', methods=['POST'])
 def create_account():
     try:
         # Get data from the POST request
         data = request.get_json()
 
+        # Log the received data
+        print("Received data:", data)  # Add logging for debugging
+
         # Get user_id from the cookies
         user_id = request.cookies.get('user_id')
+        print("User ID from cookie:", user_id)  # Log user ID
 
         if not user_id:
             return jsonify({"error": "User ID not found in cookies!"}), 400
@@ -137,6 +140,7 @@ def create_account():
         return jsonify({"message": "Account created successfully!", "account_id": str(result.inserted_id)}), 200
 
     except Exception as e:
+        print(f"Error in create_account: {str(e)}")  # Log the exception message
         return jsonify({"error": str(e)}), 500
 
 # Route to fetch all accounts
