@@ -4,6 +4,7 @@ import { Line, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { Link } from 'react-router-dom';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
@@ -341,6 +342,15 @@ function BankStatement() {
         <Button variant="contained" color="secondary" onClick={downloadPDF} sx={{ ml: 2 }}>
           Download PDF
         </Button>
+
+        {/* Button to go to Home */}
+        <Box sx={{ textAlign: 'center', backgroundColor: '#fff', mt: 2 }}>
+          <Link to="/" style={{ textDecoration: 'none', width: '100%' }}>
+            <Button variant="outlined" color="primary" fullWidth sx={{ py: 2 }}>
+              Go to Home
+            </Button>
+          </Link>
+        </Box>
       </Container>
     </Box>
   );
