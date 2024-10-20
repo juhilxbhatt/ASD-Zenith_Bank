@@ -1,14 +1,14 @@
-import pytest
-from unittest.mock import patch, MagicMock
 from flask import Flask
-from bson import ObjectId  # Import ObjectId from bson
+from unittest.mock import patch, MagicMock
+from bson import ObjectId
+import pytest
 from app import app
 from routes import api
 
 @pytest.fixture
 def client():
     app = Flask(__name__)
-    app.register_blueprint(api)  # Ensure the 'api' blueprint is registered
+    app.register_blueprint(api)  # Register the 'api' blueprint
     app.config['TESTING'] = True
     client = app.test_client()
     yield client
@@ -17,18 +17,18 @@ def client():
 @patch('server.routes.accounts_collection')
 def test_create_account(mock_accounts_collection, mock_users_collection, client):
     # Use a valid ObjectId
-    valid_user_id = str(ObjectId())
+    valid_user_id = ObjectId()  # Create an ObjectId directly
 
     # Mock the user lookup to return a valid user with an ObjectId
     mock_users_collection.find_one.return_value = {"_id": valid_user_id}
 
     # Mock the account insertion
     mock_inserted_id = MagicMock()
-    mock_inserted_id.inserted_id = "mock_account_id"
+    mock_inserted_id.inserted_id = ObjectId("mock_account_id")  # Ensure it's an ObjectId
     mock_accounts_collection.insert_one.return_value = mock_inserted_id
 
     # Set the user_id as a cookie directly
-    client.set_cookie('user_id', valid_user_id)
+    client.set_cookie('localhost', 'user_id', str(valid_user_id))  # Set cookie correctly
 
     # Send the POST request to create an account
     response = client.post('/api/create_account', json={
