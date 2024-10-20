@@ -150,6 +150,17 @@ function BankStatement() {
     }
   };
 
+  // Helper function to filter transaction logs by date
+  const filterLogsByDate = (logs, startDate, endDate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    return logs.filter(log => {
+      const logDate = new Date(log.Date);
+      return logDate >= start && logDate <= end;
+    });
+  };
+
   // Toggle charts visibility
   const toggleChartsVisibility = () => {
     setChartsVisible((prev) => !prev);
@@ -273,14 +284,22 @@ function BankStatement() {
                 <strong>Status:</strong> {account.status}
               </Typography>
 
-              {/* Display transaction logs for each account */}
+              {/* Display transaction logs for each account with date filter */}
               <Typography variant="h6" sx={{ mt: 3 }}>
                 <strong>Transaction Logs:</strong>
               </Typography>
               <Box sx={{ maxHeight: '200px', overflowY: 'auto', mt: 2 }}>
-                {statementData?.TransactionLogs.filter(log => log.AccountID === account.id).length > 0 ? (
+                {statementData?.TransactionLogs.filter(log => 
+                  log.AccountID === account.id && 
+                  (!startDate || !endDate || 
+                  (new Date(log.Date) >= new Date(startDate) && new Date(log.Date) <= new Date(endDate)))
+                ).length > 0 ? (
                   <ul>
-                    {statementData.TransactionLogs.filter(log => log.AccountID === account.id).map((log, index) => (
+                    {statementData.TransactionLogs.filter(log => 
+                      log.AccountID === account.id && 
+                      (!startDate || !endDate || 
+                      (new Date(log.Date) >= new Date(startDate) && new Date(log.Date) <= new Date(endDate)))
+                    ).map((log, index) => (
                       <li key={index}>
                         <Typography variant="body1">
                           <strong>Date:</strong> {new Date(log.Date).toLocaleDateString()} | 
@@ -299,14 +318,19 @@ function BankStatement() {
         </Box>
 
         {chartsVisible && (
-          <Box>
+          <Box sx={{
+            backgroundColor: '#fff',
+            color: '#000',
+            borderRadius: '10px',
+            p: 3,
+            boxShadow: 4,
+            mb: 4,
+          }}>
             <Typography variant="h5" align="center" gutterBottom>
               Charts
             </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-around', mb: 4 }}>
               <Bar data={deposits} options={{ responsive: true }} />
               <Bar data={withdrawals} options={{ responsive: true }} />
-            </Box>
             <Line data={monthlySpending} options={{ responsive: true }} />
           </Box>
         )}
