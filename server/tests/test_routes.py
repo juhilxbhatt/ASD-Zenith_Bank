@@ -2,7 +2,8 @@ import pytest
 from unittest.mock import patch, MagicMock
 from flask import Flask
 from bson import ObjectId  # Import ObjectId from bson
-from app import app  # Assuming your tests and app are within the same 'server' folder
+from app import app
+from routes import api
 
 @pytest.fixture
 def client():
