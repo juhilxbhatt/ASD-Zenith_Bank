@@ -17,7 +17,7 @@ def client():
 @patch('server.routes.accounts_collection')
 def test_create_account(mock_accounts_collection, mock_users_collection, client):
     # Use a valid ObjectId for the user
-    valid_user_id = ObjectId()  # Create an ObjectId directly
+    valid_user_id = str(ObjectId())  # Create an ObjectId directly
 
     # Mock the user lookup to return a valid user with an ObjectId
     mock_users_collection.find_one.return_value = {"_id": valid_user_id}
@@ -28,7 +28,7 @@ def test_create_account(mock_accounts_collection, mock_users_collection, client)
     mock_accounts_collection.insert_one.return_value = mock_inserted_id
 
     # Set the user_id as a cookie directly
-    client.set_cookie('localhost', 'user_id', str(valid_user_id))
+    client.set_cookie('user_id', valid_user_id)
 
     # Send the POST request to create an account
     response = client.post('/api/create_account', json={
