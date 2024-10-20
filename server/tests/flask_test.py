@@ -35,7 +35,7 @@ def test_create_account(mock_users_collection, mock_accounts_collection, client)
     mock_accounts_collection.insert_one.return_value = mock_result
 
     # Perform the POST request to create an account
-    response = client.post('/api/create_account', json=data)
+    response = client.post('/api/create_account', json=data, headers={'Cookie': 'userID=66dba291464bf428046deaf2'})
     
     # Assert the response status code and message
     assert response.status_code == 200
@@ -65,9 +65,13 @@ def test_create_account_user_not_found(mock_users_collection, mock_accounts_coll
     assert b'User not found!' in response.data
 
 
+@patch('routes.request.cookies.get')
 @patch('routes.accounts_collection')
-@patch('routes.users_collection')  # Mocking users_collection
-def test_create_account_invalid_data(mock_users_collection, mock_accounts_collection, client):
+@patch('routes.users_collection')
+def test_create_account_invalid_data(mock_users_collection, mock_accounts_collection, mock_cookies, client):
+    # Mock the cookie to return the userID
+    mock_cookies.return_value = '66dba291464bf428046deaf2'
+
     # Mock data for creating an account with invalid balance
     data = {
         "userID": "66dba291464bf428046deaf2",  # Example ObjectID
