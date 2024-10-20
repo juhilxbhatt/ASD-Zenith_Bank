@@ -31,10 +31,7 @@ def test_create_account(mock_accounts_collection, mock_users_collection, client)
     client.set_cookie('user_id', valid_user_id)
 
     # Send the POST request to create an account
-    response = client.post('/api/create_account', json={
-        'accountType': 'Savings',
-        'balance': 1000.00
-    })
+    response = client.post('/api/create_account')
 
     # Check that the response status code is 200
     assert response.status_code == 200
