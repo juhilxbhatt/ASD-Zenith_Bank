@@ -38,6 +38,8 @@ def test_create_account(mock_accounts_collection, mock_users_collection, client)
 
     # Check that the response status code is 200
     assert response.status_code == 200
+    assert response.get_json()['message'] == "Account created successfully!"
+    assert response.get_json()['account_id'] == str(mock_inserted_id.inserted_id)  # Ensure the ID is compared correctly
 
 @patch('routes.transaction_logs_collection')
 @patch('routes.accounts_collection')
