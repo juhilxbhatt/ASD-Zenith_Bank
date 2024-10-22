@@ -9,7 +9,7 @@ steps:
 # Python setup for Flask tests
 - task: UsePythonVersion@0
   inputs:
-    versionSpec: '3.x'  # Specify the Python version
+    versionSpec: '3.x'
     addToPath: true
 
 - script: |
