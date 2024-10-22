@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Box, Container, Typography, Button, CircularProgress, TextField } from '@mui/material';
-import { Link } from 'react-router-dom';
 import { Line, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { Link } from 'react-router-dom';
 
-// Register chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 function BankStatement() {
@@ -23,6 +22,9 @@ function BankStatement() {
   
   // State to manage chart visibility
   const [chartsVisible, setChartsVisible] = useState(false);
+
+  // State for account details
+  const [accountDetails, setAccountDetails] = useState([]);
 
   // Reference to the component for PDF generation
   const pdfRef = useRef();
@@ -44,12 +46,31 @@ function BankStatement() {
         } else {
           setStatementData(data);
           categorizeTransactions(data.TransactionLogs); // Categorize transactions for charts
+          fetchAccountDetails(data.Accounts); // Fetch account details
         }
         setLoading(false);
       })
       .catch((err) => {
         setError("Failed to fetch data.");
         setLoading(false);
+      });
+  };
+
+  // Fetch account details from the new API route
+  const fetchAccountDetails = (accounts) => {
+    const accountIds = accounts.map(account => account._id);
+    
+    fetch(`/api/account_details?account_ids=${accountIds.join('&account_ids=')}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          setError(data.error);
+        } else {
+          setAccountDetails(data);
+        }
+      })
+      .catch(err => {
+        setError("Failed to fetch account details.");
       });
   };
 
@@ -130,6 +151,17 @@ function BankStatement() {
     }
   };
 
+  // Helper function to filter transaction logs by date
+  const filterLogsByDate = (logs, startDate, endDate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    return logs.filter(log => {
+      const logDate = new Date(log.Date);
+      return logDate >= start && logDate <= end;
+    });
+  };
+
   // Toggle charts visibility
   const toggleChartsVisibility = () => {
     setChartsVisible((prev) => !prev);
@@ -191,63 +223,12 @@ function BankStatement() {
         color: '#fff',
       }}
     >
-      <Container maxWidth="md" ref={pdfRef}>
-        <Typography variant="h3" align="center" gutterBottom sx={{ fontWeight: 'bold' }}>
+      <Container maxWidth="md">
+        <Typography variant="h4" align="center" gutterBottom>
           Bank Statement
         </Typography>
 
-        {/* Button to download PDF */}
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <Button variant="contained" color="primary" onClick={downloadPDF}>
-            Download PDF
-          </Button>
-        </Box>
-
-        {/* Display user and account details */}
-        <Box
-          sx={{
-            backgroundColor: '#fff',
-            color: '#000',
-            borderRadius: '10px',
-            p: 3,
-            boxShadow: 4,
-            mb: 4,
-          }}
-        >
-          <Typography variant="h6" gutterBottom>
-            User ID: {statementData.UserID}
-          </Typography>
-
-          {/* List account IDs */}
-          <Typography variant="h6" gutterBottom>
-            Account IDs:
-          </Typography>
-          <ul>
-            {statementData.Accounts.map((account) => (
-              <li key={account._id}>
-                <Typography variant="body1">Account ID: {account._id}</Typography>
-              </li>
-            ))}
-          </ul>
-        </Box>
-
-        {/* Display transaction logs */}
-        <Box
-          sx={{
-            backgroundColor: '#fff',
-            color: '#000',
-            borderRadius: '10px',
-            p: 3,
-            boxShadow: 4,
-            mb: 4,
-          }}
-        >
-          <Typography variant="h5" gutterBottom>
-            Transaction Logs
-          </Typography>
-
-        {/* Date filter section */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+        <Box display="flex" justifyContent="space-between" mb={3}>
           <TextField
             label="Start Date"
             type="date"
@@ -256,7 +237,6 @@ function BankStatement() {
             InputLabelProps={{
               shrink: true,
             }}
-            sx={{ backgroundColor: '#fff', borderRadius: '5px' }}
           />
           <TextField
             label="End Date"
@@ -266,69 +246,113 @@ function BankStatement() {
             InputLabelProps={{
               shrink: true,
             }}
-            sx={{ backgroundColor: '#fff', borderRadius: '5px' }}
           />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleFilter}
-            sx={{ alignSelf: 'center' }}
-          >
+          <Button variant="contained" color="primary" onClick={handleFilter}>
             Filter
           </Button>
         </Box>
 
-        <ul>
-          {statementData.TransactionLogs.map((log) => (
-            <li key={log._id}>
-              <Typography variant="body1">
-                <strong>Account ID:</strong> {log.AccountID} <br />
-                <strong>Date:</strong> {new Date(log.Date).toLocaleDateString()} <br />
-                <strong>Description:</strong> {log.Description} <br />
-                <strong>Amount:</strong> {log.Amount} <br />
-              </Typography>
-            </li>
-          ))}
-        </ul>
-      </Box>
+        <Box ref={pdfRef}>
+          <Typography variant="h5" align="center" gutterBottom>
+            Account Details
+          </Typography>
 
-      {/* Toggle for charts */}
-      <Box sx={{ textAlign: 'center', mb: 4 }}>
+          {accountDetails.length > 0 && accountDetails.map((account) => (
+            <Box
+              key={account.id}
+              sx={{
+                backgroundColor: '#fff',
+                color: '#000',
+                borderRadius: '10px',
+                p: 3,
+                boxShadow: 4,
+                mb: 4,
+              }}
+            >
+              <Typography variant="h6">
+                <strong>Account ID:</strong> {account.id}
+              </Typography>
+              <Typography variant="h6">
+                <strong>User ID:</strong> {account.userID}
+              </Typography>
+              <Typography variant="h6">
+                <strong>Account Type:</strong> {account.accountType}
+              </Typography>
+              <Typography variant="h6">
+                <strong>Balance:</strong> ${account.balance}
+              </Typography>
+              <Typography variant="h6">
+                <strong>Status:</strong> {account.status}
+              </Typography>
+
+              {/* Display transaction logs for each account with date filter */}
+              <Typography variant="h6" sx={{ mt: 3 }}>
+                <strong>Transaction Logs:</strong>
+              </Typography>
+              <Box sx={{ maxHeight: '200px', overflowY: 'auto', mt: 2 }}>
+                {statementData?.TransactionLogs.filter(log => 
+                  log.AccountID === account.id && 
+                  (!startDate || !endDate || 
+                  (new Date(log.Date) >= new Date(startDate) && new Date(log.Date) <= new Date(endDate)))
+                ).length > 0 ? (
+                  <ul>
+                    {statementData.TransactionLogs.filter(log => 
+                      log.AccountID === account.id && 
+                      (!startDate || !endDate || 
+                      (new Date(log.Date) >= new Date(startDate) && new Date(log.Date) <= new Date(endDate)))
+                    ).map((log, index) => (
+                      <li key={index}>
+                        <Typography variant="body1">
+                          <strong>Date:</strong> {new Date(log.Date).toLocaleDateString()} | 
+                          <strong> Amount:</strong> ${log.Amount} | 
+                          <strong> Type:</strong> {log.Amount > 0 ? 'Deposit' : 'Withdrawal'}
+                        </Typography>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <Typography variant="body2">No transactions available for this account.</Typography>
+                )}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+
+        {chartsVisible && (
+          <Box sx={{
+            backgroundColor: '#fff',
+            color: '#000',
+            borderRadius: '10px',
+            p: 3,
+            boxShadow: 4,
+            mb: 4,
+          }}>
+            <Typography variant="h5" align="center" gutterBottom>
+              Charts
+            </Typography>
+              <Bar data={deposits} options={{ responsive: true }} />
+              <Bar data={withdrawals} options={{ responsive: true }} />
+            <Line data={monthlySpending} options={{ responsive: true }} />
+          </Box>
+        )}
+
         <Button variant="contained" color="primary" onClick={toggleChartsVisibility}>
           {chartsVisible ? 'Hide Charts' : 'Show Charts'}
         </Button>
-      </Box>
-
-      {/* Display charts conditionally */}
-      {chartsVisible && (
-        <Box sx={{ backgroundColor: 'white', padding: 2 }}>
-          <Typography variant="h5" gutterBottom>
-            Monthly Spending Overview
-          </Typography>
-          <Line data={monthlySpending} />
-
-          <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
-            Deposits
-          </Typography>
-          <Bar data={deposits} />
-
-          <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
-            Withdrawals
-          </Typography>
-          <Bar data={withdrawals} />
-        </Box>
-      )}
+        <Button variant="contained" color="secondary" onClick={downloadPDF} sx={{ ml: 2 }}>
+          Download PDF
+        </Button>
 
         {/* Button to go to Home */}
-        <Box sx={{ background: '#FFF', textAlign: 'center', mt: 2 }}>
+        <Box sx={{ textAlign: 'center', backgroundColor: '#fff', mt: 2 }}>
           <Link to="/" style={{ textDecoration: 'none', width: '100%' }}>
             <Button variant="outlined" color="primary" fullWidth sx={{ py: 2 }}>
               Go to Home
             </Button>
           </Link>
         </Box>
-    </Container>
-  </Box>
+      </Container>
+    </Box>
   );
 }
 

@@ -104,15 +104,18 @@ def check_email():
         return jsonify({"exists": False}), 200  # Email does not exist
 
 
-# Route to create a new account
 @api.route('/api/create_account', methods=['POST'])
 def create_account():
     try:
         # Get data from the POST request
         data = request.get_json()
 
+        # Log the received data
+        print("Received data:", data)  # Add logging for debugging
+
         # Get user_id from the cookies
         user_id = request.cookies.get('user_id')
+        print("User ID from cookie:", user_id)  # Log user ID
 
         if not user_id:
             return jsonify({"error": "User ID not found in cookies!"}), 400
@@ -137,6 +140,7 @@ def create_account():
         return jsonify({"message": "Account created successfully!", "account_id": str(result.inserted_id)}), 200
 
     except Exception as e:
+        print(f"Error in create_account: {str(e)}")  # Log the exception message
         return jsonify({"error": str(e)}), 500
 
 # Route to fetch all accounts
@@ -195,6 +199,48 @@ def get_transaction_logs():
 
     except Exception as e:
         print(f"Error fetching transaction logs: {e}")
+        return jsonify({"error": str(e)}), 500
+    
+# Route to fetch account details by account IDs
+@api.route('/api/account_details', methods=['GET'])
+def get_account_details():
+    try:
+        # Get user_id from the cookies
+        user_id = request.cookies.get('user_id')
+
+        if not user_id:
+            return jsonify({"error": "User ID not found in cookies!"}), 400
+
+        # Convert the user_id to an ObjectId
+        user_id = ObjectId(user_id)
+
+        # Get account IDs from query parameters
+        account_ids = request.args.getlist('account_ids')  # List of account IDs
+
+        # Convert account IDs to ObjectId
+        object_ids = [ObjectId(account_id) for account_id in account_ids]
+
+        # Find accounts by IDs
+        accounts = list(accounts_collection.find({"_id": {"$in": object_ids}, "userID": user_id}))
+
+        if not accounts:
+            return jsonify({"message": "No accounts found for the provided IDs."}), 404
+
+        # Serialize account data
+        serialized_accounts = []
+        for account in accounts:
+            serialized_accounts.append({
+                "id": str(account["_id"]),
+                "userID": str(account["userID"]),
+                "accountType": account["accountType"],
+                "balance": account["balance"],
+                "status": account["status"]
+            })
+
+        return jsonify(serialized_accounts), 200
+
+    except Exception as e:
+        print(f"Error fetching account details: {e}")
         return jsonify({"error": str(e)}), 500
     
 # API Endpoint to fetch user transactions

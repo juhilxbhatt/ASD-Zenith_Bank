@@ -21,22 +21,9 @@ steps:
 
 - script: |
     source venv/bin/activate
-    export PYTHONPATH=$(pwd)
+    export PYTHONPATH=$(pwd)/server  # Set PYTHONPATH to include the server folder
     pytest server/tests/ --junitxml=junit/test-results-flask.xml
-  displayName: 'Juhil Flask tests'
-
-# Node.js setup for React tests
-- task: NodeTool@0
-  inputs:
-    versionSpec: '18.x'  # or the Node.js version you're using
-    checkLatest: true
-
-# Test for React
-#- script: |
-#    cd client
-#    npm install
-#    npm run test -- --coverage --ci --watchAll=false
-#  displayName: 'Juhil React tests'
+  displayName: 'Run Flask tests'
 
 # Publish test results
 - task: PublishTestResults@2
@@ -45,3 +32,10 @@ steps:
     testResultsFiles: '**/junit/test-results-*.xml'
     failTaskOnFailedTests: true
   displayName: 'Publish test results'
+
+# Test for React
+#- script: |
+#    cd client
+#    npm install
+#    npm run test -- --coverage --ci --watchAll=false
+#  displayName: 'Juhil React tests'
