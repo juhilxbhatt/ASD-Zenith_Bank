@@ -1,85 +1,71 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import { Button, Box, TextField, Container, Typography, FormControl, InputLabel, Select, MenuItem, Alert, Snackbar, Paper, Grid } from '@mui/material';
+import { Button, Box, TextField, Container, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Grid, Snackbar, Alert } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { useNavigate } from 'react-router-dom';
 
 function TransferDeposit() {
   const [transactionType, setTransactionType] = useState('transfer');
-  const [payees, setPayees] = useState([]); // Payees list fetched dynamically
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
-  const [newRecipient, setNewRecipient] = useState('');
   const [scheduledDate, setScheduledDate] = useState(null);
   const [transactionHistory, setTransactionHistory] = useState([]);
-  const [showSnackbar, setShowSnackbar] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
-  const [newRecipientVisible, setNewRecipientVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(''); // Add error state to handle error message
   const navigate = useNavigate();
 
-  // Fetch payees for the logged-in user from the backend
-  useEffect(() => {
-    const fetchPayees = async () => {
-      try {
-        const response = await axios.get('/api/user/payees');  // Endpoint that fetches user payees
-        setPayees(response.data.payees || []);
-      } catch (error) {
-        console.error('Error fetching payees:', error);
+  // Fetch payees from MongoDB via Flask backend
+  const fetchPayees = async () => {
+    try {
+      const response = await axios.get('/api/user/payees');
+      // Handle the response data here
+    } catch (error) {
+      if (error.response && error.response.data.error) {
+        setErrorMessage(error.response.data.error);
+      } else {
+        console.error('Error fetching payees', error);
       }
-    };
+    }
+  };
 
-    fetchPayees();
+  useEffect(() => {
+    fetchPayees(); // Fetch payees when the component loads
   }, []);
 
-  // Handle recipient selection
-  const handleRecipientChange = (e) => {
-    if (e.target.value === 'new') {
-      setNewRecipientVisible(true);
-      setRecipient('');
-    } else {
-      setRecipient(e.target.value);
-      setNewRecipientVisible(false);
-    }
-  };
-
-  const handleTransaction = async () => {
-    if (!amount || amount <= 0 || (transactionType === 'transfer' && !recipient && !newRecipient)) {
-      setAlertMessage('Please enter a valid amount and recipient details.');
-      setShowSnackbar(true);
-      return;
-    }
-
-    const newTransaction = {
-      type: transactionType,
-      amount: parseFloat(amount),
-      date: scheduledDate ? scheduledDate.format('YYYY-MM-DD') : new Date().toLocaleDateString(),
-      category: transactionType === 'transfer' ? 'Transfer' : 'Deposit',
-      recipient: transactionType === 'transfer' ? (newRecipient ? newRecipient : payees.find((r) => r._id === recipient).name) : 'Self',
-    };
-
-    try {
-      await axios.post(`/api/user/transaction`, newTransaction);
-      setTransactionHistory([newTransaction, ...transactionHistory]);
-      setAlertMessage(`${transactionType === 'transfer' ? 'Transfer' : 'Deposit'} of $${amount} completed successfully!`);
-      setShowSnackbar(true);
-
-      // Reset form
-      setRecipient('');
-      setNewRecipient('');
-      setAmount('');
-      setScheduledDate(null);
-      setNewRecipientVisible(false);
-    } catch (error) {
-      console.error('Error submitting transaction', error);
-      setAlertMessage('Transaction failed. Please try again.');
-      setShowSnackbar(true);
-    }
-  };
+  if (errorMessage) {
+    // Display the error message in red text
+    return (
+      <Container maxWidth="md" sx={{ py: 5 }}>
+        <Typography variant="h4" align="center" gutterBottom color="error">
+          {errorMessage}
+        </Typography>
+      </Container>
+    );
+  }
 
   return (
-    <Box>
-      {/* UI layout remains the same */}
-      {/* The dynamically fetched payees are now rendered in the recipient selection */}
+    <Box
+      sx={{
+        background: 'linear-gradient(to right, #2193b0, #6dd5ed)', // Apply background here
+        minHeight: '100vh',
+        py: 10,
+      }}
+    >
+      <Container maxWidth="md" sx={{ py: 5 }}>
+        <Typography variant="h4" align="center" gutterBottom sx={{ color: '#fff' }}>
+          Transfer & Deposit
+        </Typography>
+
+        {/* Go Back Button */}
+        <Button variant="outlined" color="primary" onClick={() => navigate(-1)} sx={{ mb: 3 }}>
+          Go Back
+        </Button>
+
+        <Paper elevation={4} sx={{ p: 4, mb: 5 }}>
+          <Grid container spacing={4}>
+            {/* Transaction form elements */}
+          </Grid>
+        </Paper>
+      </Container>
     </Box>
   );
 }
