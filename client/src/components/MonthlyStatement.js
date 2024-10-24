@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Button, Box, Container, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Grid, Divider, Alert } from '@mui/material';
+import { Button, Box, Container, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Grid, Divider } from '@mui/material';
 import { Line, Pie } from 'react-chartjs-2';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/system';
@@ -39,19 +39,18 @@ const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 function MonthlyStatement({ userId }) {
   const [selectedMonth, setSelectedMonth] = useState('January');
   const [transactions, setTransactions] = useState([]);
-  const [errorMessage, setErrorMessage] = useState(''); // Add error state to handle error message
   const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState('');  // Add error handling
 
   // Fetch transactions from MongoDB via Flask backend
   const fetchTransactions = async (month) => {
     try {
-      const response = await axios.get(`/api/user/transactions`, {
+      const response = await axios.get(`/api/user/${userId}/transactions`, {
         params: { month },
       });
       setTransactions(response.data);
     } catch (error) {
       if (error.response && error.response.data.error) {
-        // If error message exists, set it to display
         setErrorMessage(error.response.data.error);
       } else {
         console.error('Error fetching transactions', error);
@@ -63,18 +62,57 @@ function MonthlyStatement({ userId }) {
     fetchTransactions(selectedMonth); // Fetch transactions when the month changes
   }, [selectedMonth]);
 
+  // Ensure transactions are loaded before calculating totals
+  const totalIncome = transactions
+    ? transactions.filter((txn) => txn.type === 'deposit').reduce((acc, txn) => acc + txn.amount, 0)
+    : 0;
+
+  const totalExpenses = transactions
+    ? transactions.filter((txn) => txn.type === 'withdrawal').reduce((acc, txn) => acc + txn.amount, 0)
+    : 0;
+
   if (errorMessage) {
-    // Display the error message in red text
     return (
       <Container maxWidth="lg" sx={{ mt: 5 }}>
-        <Typography variant="h4" align="center" gutterBottom color="error">
+        <Typography variant="h4" align="center" color="error">
           {errorMessage}
         </Typography>
       </Container>
     );
   }
 
-  // If no error, render the monthly statement content
+  // Line chart data for monthly transaction overview
+  const lineChartData = {
+    labels: transactions.map((txn) => txn.date),
+    datasets: [
+      {
+        label: 'Income',
+        data: transactions.filter((txn) => txn.type === 'deposit').map((txn) => txn.amount),
+        borderColor: 'rgba(54, 162, 235, 1)',
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        fill: true,
+      },
+      {
+        label: 'Expenses',
+        data: transactions.filter((txn) => txn.type === 'withdrawal').map((txn) => txn.amount),
+        borderColor: 'rgba(255, 99, 132, 1)',
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        fill: true,
+      },
+    ],
+  };
+
+  // Pie chart data for transaction categories breakdown
+  const pieChartData = {
+    labels: [...new Set(transactions.map((txn) => txn.category))],
+    datasets: [
+      {
+        data: transactions.map((txn) => txn.amount),
+        backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(75, 192, 192, 0.6)'],
+      },
+    ],
+  };
+
   return (
     <Box
       sx={{
