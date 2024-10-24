@@ -5,8 +5,6 @@ import os
 from dotenv import load_dotenv
 from bson.objectid import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 
 # Load environment variables
@@ -243,38 +241,89 @@ def get_account_details():
         print(f"Error fetching account details: {e}")
         return jsonify({"error": str(e)}), 500
     
-# API Endpoint to fetch user transactions
-@api.route('/api/user/<user_id>/transactions', methods=['GET'])
-def get_user_transactions(user_id):
-    month = request.args.get('month', None)  # Optional query param for month filter
-    print(f"Received request to get transactions for user: {user_id} with month filter: {month}")
+# API Endpoint to fetch user transactions based on cookies
+@api.route('/api/user/transactions', methods=['GET'])
+def get_user_transactions():
+    try:
+        # Get the user_id from the cookies
+        user_id = request.cookies.get('user_id')
+        if not user_id:
+            return jsonify({"error": "User not found in cookies"}), 400
 
-    user_transactions = list(transactions_collection.find({"user_id": user_id}))
-    print(f"Fetched transactions for user {user_id}: {user_transactions}")
+        # Convert user_id to ObjectId
+        user_object_id = ObjectId(user_id)
 
-    # Optionally filter by month
-    if month:
-        user_transactions = [
-            txn for txn in user_transactions if datetime.strptime(txn['date'], "%Y-%m-%d").strftime('%B') == month
-        ]
-        print(f"Filtered transactions for month {month}: {user_transactions}")
+        # Get the month filter if provided
+        month = request.args.get('month', None)
+        year = request.args.get('year', None)  # Optional year filter
 
-    return jsonify(user_transactions)
+        # Build the query to fetch user transactions
+        query = {"user_id": user_object_id}
+
+        if month and year:
+            # Create date range for the given month and year
+            start_date = datetime(int(year), int(month), 1)
+            end_date = datetime(int(year), int(month) + 1, 1) if int(month) < 12 else datetime(int(year) + 1, 1, 1)
+            query["date"] = {"$gte": start_date, "$lt": end_date}
+
+        # Fetch transactions from MongoDB
+        transactions = list(transactions_collection.find(query))
+
+        return jsonify(transactions), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # API Endpoint to add a transaction (Transfer/Deposit)
-@api.route('/api/user/<user_id>/transaction', methods=['POST'])
-def add_transaction(user_id):
-    data = request.json
-    new_transaction = {
-        "user_id": user_id,
-        "type": data['type'],  # Either 'deposit' or 'transfer'
-        "amount": data['amount'],
-        "date": data['date'],  # Expected format 'YYYY-MM-DD'
-        "category": data['category'],
-        "recipient": data.get('recipient', None)  # Only relevant for transfers
-    }
-    transactions_collection.insert_one(new_transaction)
-    return jsonify({"message": "Transaction added successfully"}), 201
+@api.route('/api/user/transaction', methods=['POST'])
+def add_transaction():
+    try:
+        # Get user_id from cookies
+        user_id = request.cookies.get('user_id')
+        if not user_id:
+            return jsonify({"error": "User not found in cookies"}), 400
+
+        # Convert user_id to ObjectId
+        user_object_id = ObjectId(user_id)
+
+        data = request.json
+        new_transaction = {
+            "user_id": user_object_id,
+            "type": data['type'],  # Either 'deposit' or 'transfer'
+            "amount": data['amount'],
+            "date": data['date'],  # Expected format 'YYYY-MM-DD'
+            "category": data['category'],
+            "recipient": data.get('recipient', None)  # Only relevant for transfers
+        }
+        transactions_collection.insert_one(new_transaction)
+
+        return jsonify({"message": "Transaction added successfully"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Route to fetch payees for the logged-in user
+@api.route('/api/user/payees', methods=['GET'])
+def get_user_payees():
+    try:
+        # Get the user_id from the cookies
+        user_id = request.cookies.get('user_id')
+        if not user_id:
+            return jsonify({"error": "User not found in cookies"}), 400
+
+        # Convert user_id to ObjectId
+        user_object_id = ObjectId(user_id)
+
+        # Find the user by user_id
+        user = users_collection.find_one({"_id": user_object_id})
+
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Retrieve the payees/recipients associated with the user
+        payees = user.get("payees", [])
+
+        return jsonify({"payees": payees}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Route to get all users
 @api.route('/api/users', methods=['GET'])
