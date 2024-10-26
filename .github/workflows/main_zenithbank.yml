@@ -48,3 +48,36 @@ jobs:
           name: test-results
           path: junit/test-results-*.xml
         continue-on-error: true
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write #This is required for requesting the JWT
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: python-app
+
+      - name: Unzip artifact for deployment
+        run: unzip release.zip
+
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_105CA05E1EB24381A4CED4C2633EB827 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5CA35E7865BC4BE19065D62C3CE5DCBF }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D76130A6606C44C8AD9728B82654D077 }}
+
+      - name: 'Deploy to Azure Web App'
+        uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
+        with:
+          app-name: 'ZenithBank'
+          slot-name: 'Production'
