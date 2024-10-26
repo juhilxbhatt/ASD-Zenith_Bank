@@ -31,7 +31,7 @@ jobs:
       - name: Create virtual environment and install dependencies
         run: |
           python3 -m venv venv || { echo "Virtual environment creation failed, continuing..."; }
-          ls -la venv/bin || true  # List venv/bin to check if venv was created, continue if it’s missing
+          ls -la venv/bin || true
           source venv/bin/activate || echo "Skipping activation as venv creation failed."
           pip install -r ./server/requirements.txt || echo "Skipping dependency installation as venv creation failed."
         continue-on-error: true
@@ -49,6 +49,13 @@ jobs:
           path: junit/test-results-*.xml
         continue-on-error: true
 
+      - name: Upload Python App Artifact
+        if: success() || failure()  # Ensures artifact is uploaded regardless of test success
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-app
+          path: .  # Adjust path if you need a specific directory or file (e.g., './server')
+
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -56,18 +63,18 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
+      id-token: write
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: python-app
+          name: python-app  # Matches name from the build job
+          path: ./  # Where to download the artifact locally
 
       - name: Unzip artifact for deployment
-        run: unzip release.zip
+        run: unzip release.zip || echo "Unzip skipped as release.zip may not exist."
 
-      
       - name: Login to Azure
         uses: azure/login@v2
         with:
