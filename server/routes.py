@@ -28,6 +28,92 @@ users_collection = db["User"]
 transaction_logs_collection = db["TransactionLog"]
 transactions_collection = db['transactions']  # Define the transactions collection
 
+# Helper function to serialize ObjectId
+def serialize_document(document):
+    if isinstance(document, ObjectId):
+        return str(document)
+    elif isinstance(document, list):
+        return [serialize_document(item) for item in document]
+    elif isinstance(document, dict):
+        return {key: serialize_document(value) for key, value in document.items()}
+    else:
+        return document
+
+
+
+# Helper function to get user_id from cookies
+def get_user_id_from_cookies():
+    user_id = request.cookies.get('user_id')
+    if not user_id:
+        raise ValueError("User ID not found in cookies!")
+    try:
+        return ObjectId(user_id)
+    except Exception as e:
+        print(f"Error converting user_id to ObjectId: {e}")
+        raise ValueError("Invalid user ID format")
+
+# Route for the Monthly Bank Statement
+@api.route('/api/monthly_statement', methods=['GET'])
+def get_monthly_statement():
+    try:
+        # Retrieve user_id from cookies
+        user_id = get_user_id_from_cookies()
+        
+        # Get month and year parameters from query
+        month = int(request.args.get('month', datetime.now().month))
+        year = int(request.args.get('year', datetime.now().year))
+
+        # Date range for the given month and year
+        start_date = datetime(year, month, 1)
+        end_date = datetime(year, month + 1, 1) if month < 12 else datetime(year + 1, 1, 1)
+        
+        # Find all accounts associated with the user
+        accounts = list(accounts_collection.find({"userID": user_id}, {"_id": 1}))
+        if not accounts:
+            return jsonify({"error": "No accounts found for this user"}), 404
+
+        # Extract account IDs for the user
+        account_ids = [account["_id"] for account in accounts]
+
+        # Query transactions within the date range for these accounts
+        query = {
+            "AccountID": {"$in": account_ids},
+            "Date": {"$gte": start_date, "$lt": end_date}
+        }
+        transactions = list(transaction_logs_collection.find(query))
+
+        # Process the transactions to build the monthly statement summary
+        total_income = sum(txn['Amount'] for txn in transactions if txn['Amount'] > 0)
+        total_expense = sum(abs(txn['Amount']) for txn in transactions if txn['Amount'] < 0)
+
+        # Format the response with summarized information and details
+        response = {
+            "UserID": str(user_id),
+            "Month": month,
+            "Year": year,
+            "TotalIncome": total_income,
+            "TotalExpense": total_expense,
+            "Transactions": [
+                {
+                    "Date": txn["Date"].strftime("%Y-%m-%d"),
+                    "Description": txn.get("Description", ""),
+                    "Amount": txn["Amount"],
+                    "AccountID": str(txn["AccountID"])
+                } for txn in transactions
+            ]
+        }
+
+        return jsonify(response), 200
+
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
+    except Exception as e:
+        print(f"Error in get_monthly_statement: {e}")
+        return jsonify({"error": "An error occurred while fetching the monthly statement"}), 500
+
+
+
+
 # Route to handle user login
 @api.route('/api/LoginPage', methods=['POST'])
 def login():
@@ -56,6 +142,9 @@ def login():
     else:
         return jsonify({'error': 'Invalid password'}), 401  # Invalid password
 
+# Additional API endpoints (not modified for the monthly statement functionality)
+
+# Route to create a new user
 @api.route('/api/create_user', methods=['POST'])
 def create_user():
     try:
@@ -84,6 +173,7 @@ def create_user():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
     
 
 @api.route('/api/check_email', methods=['GET'])
@@ -242,6 +332,7 @@ def get_account_details():
         return jsonify({"error": str(e)}), 500
     
 # API Endpoint to fetch user transactions based on cookies
+# Route to fetch user transactions based on cookies
 @api.route('/api/user/transactions', methods=['GET'])
 def get_user_transactions():
     try:
@@ -268,9 +359,13 @@ def get_user_transactions():
 
         # Fetch transactions from MongoDB
         transactions = list(transactions_collection.find(query))
+        
+        # Serialize transactions to handle ObjectId fields
+        serialized_transactions = serialize_document(transactions)
 
-        return jsonify(transactions), 200
+        return jsonify(serialized_transactions), 200
     except Exception as e:
+        print(f"Error in get_user_transactions: {e}")
         return jsonify({"error": str(e)}), 500
 
 # API Endpoint to add a transaction (Transfer/Deposit)

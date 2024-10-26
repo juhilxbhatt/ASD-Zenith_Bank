@@ -18,7 +18,6 @@ import {
   ArcElement,
 } from 'chart.js';
 
-// Register necessary components for Chart.js
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
 // Custom Card Styling
@@ -33,27 +32,30 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   },
 }));
 
-// Mock months (can be fetched dynamically)
+// Mock months
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-function MonthlyStatement({ userId }) {
+function MonthlyStatement() {
   const [selectedMonth, setSelectedMonth] = useState('January');
   const [transactions, setTransactions] = useState([]);
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
-  const [errorMessage, setErrorMessage] = useState('');  // Add error handling
 
   // Fetch transactions from MongoDB via Flask backend
   const fetchTransactions = async (month) => {
     try {
-      const response = await axios.get(`/api/user/${userId}/transactions`, {
+      const response = await axios.get(`/api/user/transactions`, {
         params: { month },
+        withCredentials: true,  // Ensure cookies are sent
       });
+
       setTransactions(response.data);
     } catch (error) {
       if (error.response && error.response.data.error) {
         setErrorMessage(error.response.data.error);
       } else {
         console.error('Error fetching transactions', error);
+        setErrorMessage('An error occurred while fetching transactions.');
       }
     }
   };
@@ -62,14 +64,8 @@ function MonthlyStatement({ userId }) {
     fetchTransactions(selectedMonth); // Fetch transactions when the month changes
   }, [selectedMonth]);
 
-  // Ensure transactions are loaded before calculating totals
-  const totalIncome = transactions
-    ? transactions.filter((txn) => txn.type === 'deposit').reduce((acc, txn) => acc + txn.amount, 0)
-    : 0;
-
-  const totalExpenses = transactions
-    ? transactions.filter((txn) => txn.type === 'withdrawal').reduce((acc, txn) => acc + txn.amount, 0)
-    : 0;
+  const totalIncome = transactions.filter((txn) => txn.type === 'deposit').reduce((acc, txn) => acc + txn.amount, 0);
+  const totalExpenses = transactions.filter((txn) => txn.type === 'withdrawal').reduce((acc, txn) => acc + txn.amount, 0);
 
   if (errorMessage) {
     return (
@@ -81,7 +77,6 @@ function MonthlyStatement({ userId }) {
     );
   }
 
-  // Line chart data for monthly transaction overview
   const lineChartData = {
     labels: transactions.map((txn) => txn.date),
     datasets: [
@@ -102,7 +97,6 @@ function MonthlyStatement({ userId }) {
     ],
   };
 
-  // Pie chart data for transaction categories breakdown
   const pieChartData = {
     labels: [...new Set(transactions.map((txn) => txn.category))],
     datasets: [
@@ -126,7 +120,6 @@ function MonthlyStatement({ userId }) {
           Monthly Bank Statement
         </Typography>
 
-        {/* Go Back Button */}
         <Button
           variant="outlined"
           color="primary"
@@ -144,7 +137,6 @@ function MonthlyStatement({ userId }) {
           Go Back
         </Button>
 
-        {/* Month Selection */}
         <FormControl fullWidth sx={{ mb: 3 }}>
           <InputLabel sx={{ color: '#fff' }}>Select Month</InputLabel>
           <Select
@@ -171,7 +163,6 @@ function MonthlyStatement({ userId }) {
           </Select>
         </FormControl>
 
-        {/* Transaction Summary */}
         <Box sx={{ mb: 4, color: '#fff' }}>
           <Typography variant="h6">Summary for {selectedMonth}:</Typography>
           <Typography variant="body1">Total Income: ${totalIncome}</Typography>
@@ -180,7 +171,6 @@ function MonthlyStatement({ userId }) {
 
         <Divider sx={{ my: 3, backgroundColor: '#fff' }} />
 
-        {/* Charts Section */}
         <Grid container spacing={4}>
           <Grid item xs={12} md={6}>
             <StyledPaper>
@@ -203,7 +193,6 @@ function MonthlyStatement({ userId }) {
 
         <Divider sx={{ my: 3, backgroundColor: '#fff' }} />
 
-        {/* Transaction Table */}
         <StyledPaper>
           <Typography variant="h6" gutterBottom>
             Detailed Transactions:
