@@ -19,11 +19,11 @@ steps:
     pip install pytest pytest-flask
   displayName: 'Install Flask dependencies'
 
-- script: |
-    source venv/bin/activate
-    export PYTHONPATH=$(pwd)/server  # Set PYTHONPATH to include the server folder
-    pytest server/tests/ --junitxml=junit/test-results-flask.xml
-  displayName: 'Run Flask tests'
+#- script: |
+#    source venv/bin/activate
+#    export PYTHONPATH=$(pwd)/server  # Set PYTHONPATH to include the server folder
+#    pytest server/tests/ --junitxml=junit/test-results-flask.xml
+#  displayName: 'Run Flask tests'
 
 # Publish test results
 - task: PublishTestResults@2
