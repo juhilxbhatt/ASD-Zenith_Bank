@@ -14,8 +14,8 @@ steps:
 
 - script: |
     python -m venv venv
-    source venv/bin/activate
-    pip install -r server/requirements.txt
+    source ./venv/bin/activate
+    pip install -r ./server/requirements.txt
     pip install pytest pytest-flask
   displayName: 'Install Flask dependencies'
 
@@ -26,12 +26,12 @@ steps:
 #  displayName: 'Run Flask tests'
 
 # Publish test results
-- task: PublishTestResults@2
-  inputs:
-    testResultsFormat: 'JUnit'
-    testResultsFiles: '**/junit/test-results-*.xml'
-    failTaskOnFailedTests: true
-  displayName: 'Publish test results'
+#- task: PublishTestResults@2
+#  inputs:
+#    testResultsFormat: 'JUnit'
+#    testResultsFiles: '**/junit/test-results-*.xml'
+#    failTaskOnFailedTests: true
+#  displayName: 'Publish test results'
 
 # Test for React
 #- script: |
