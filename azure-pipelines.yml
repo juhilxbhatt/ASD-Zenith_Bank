@@ -1,44 +1,40 @@
-name: CI for Python and Flask
-
-on:
-  push:
-    branches:
+trigger:
+  branches:
+    include:
       - '*'  # Trigger the pipeline on any branch commit
-  pull_request:
-    branches:
-      - '*'
+pool:
+  vmImage: 'ubuntu-latest'
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+steps:
+# Python setup for Flask tests
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x'
+    addToPath: true
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+- script: |
+    python -m venv venv
+    source venv/bin/activate
+    pip install -r ./server/requirements.txt
+  displayName: 'Install Flask dependencies'
 
-      - name: Set up Python 3.x
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'  # Ensures Python is installed
+- script: |
+    source venv/bin/activate
+    export PYTHONPATH=$(pwd)/server  # Set PYTHONPATH to include the server folder
+    pytest server/tests/ --junitxml=junit/test-results-flask.xml
+  displayName: 'Run Flask tests'
 
-      - name: Install dependencies
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install -r server/requirements.txt
-          pip install pytest pytest-flask
-        displayName: 'Install Flask dependencies'
+# Publish test results
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/junit/test-results-*.xml'
+    failTaskOnFailedTests: true
+  displayName: 'Publish test results'
 
-      - name: Run Flask tests
-        run: |
-          source venv/bin/activate
-          export PYTHONPATH=$(pwd)/server  # Set PYTHONPATH to include the server folder
-          pytest server/tests/ --junitxml=junit/test-results-flask.xml
-        displayName: 'Run Flask tests'
-
-      - name: Publish test results
-        if: always()  # Run this step even if tests fail
-        uses: actions/upload-artifact@v4
-        with:
-          name: Test Results
-          path: '**/junit/test-results-*.xml'
+# Test for React
+#- script: |
+#    cd client
+#    npm install
+#    npm run test -- --coverage --ci --watchAll=false
+#  displayName: 'Juhil React tests'
