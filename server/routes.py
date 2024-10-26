@@ -279,6 +279,7 @@ def add_transaction():
     try:
         # Get user_id from cookies
         user_id = request.cookies.get('user_id')
+        print(user_id)
         if not user_id:
             return jsonify({"error": "User not found in cookies"}), 400
 
