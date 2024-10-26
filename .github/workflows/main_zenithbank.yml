@@ -54,7 +54,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: python-app
-          path: .  # Adjust path if you need a specific directory or file (e.g., './server')
+          path: ./server  # Adjust this to your actual application files
 
   deploy:
     runs-on: ubuntu-latest
@@ -71,6 +71,9 @@ jobs:
         with:
           name: python-app  # Matches name from the build job
           path: ./  # Where to download the artifact locally
+
+      - name: Check if artifact is downloaded
+        run: ls -la || echo "Artifact download may have failed; no files listed."
 
       - name: Unzip artifact for deployment
         run: unzip release.zip || echo "Unzip skipped as release.zip may not exist."
