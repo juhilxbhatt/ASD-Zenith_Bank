@@ -49,12 +49,17 @@ jobs:
           path: junit/test-results-*.xml
         continue-on-error: true
 
-      - name: Upload Python App Artifact
+      - name: Package Python App as ZIP
+        run: |
+          zip -r python-app.zip ./server  # Adjust path if necessary
+        continue-on-error: true
+
+      - name: Upload Python App Artifact as ZIP
         if: success() || failure()  # Ensures artifact is uploaded regardless of test success
         uses: actions/upload-artifact@v3
         with:
           name: python-app
-          path: ./server  # Adjust this to your actual application files
+          path: python-app.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -76,7 +81,7 @@ jobs:
         run: ls -la || echo "Artifact download may have failed; no files listed."
 
       - name: Unzip artifact for deployment
-        run: unzip release.zip || echo "Unzip skipped as release.zip may not exist."
+        run: unzip python-app.zip || echo "Unzip skipped as python-app.zip may not exist."
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -90,4 +95,5 @@ jobs:
         id: deploy-to-webapp
         with:
           app-name: 'ZenithBank'
-          slot-name: 'Production'
+          slot-name: 'ZenithBank'
+          package: python-app.zip  # Specify the ZIP package for deployment
