@@ -1,40 +1,36 @@
 trigger:
   branches:
     include:
-      - '*'  # Trigger the pipeline on any branch commit
+      - '*'  # Trigger on any branch commit
+
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-# Python setup for Flask tests
 - task: UsePythonVersion@0
   inputs:
-    versionSpec: '3.x'
+    versionSpec: '3.12'
     addToPath: true
 
 - script: |
     python -m venv venv
+    if [ ! -d "venv" ]; then
+      echo "Virtual environment creation failed"
+      exit 1
+    fi
     source venv/bin/activate
     pip install -r ./server/requirements.txt
   displayName: 'Install Flask dependencies'
 
 - script: |
     source venv/bin/activate
-    export PYTHONPATH=$(pwd)/server  # Set PYTHONPATH to include the server folder
+    export PYTHONPATH=$(pwd)/server
     pytest server/tests/ --junitxml=junit/test-results-flask.xml
   displayName: 'Run Flask tests'
 
-# Publish test results
 - task: PublishTestResults@2
   inputs:
     testResultsFormat: 'JUnit'
     testResultsFiles: '**/junit/test-results-*.xml'
     failTaskOnFailedTests: true
   displayName: 'Publish test results'
-
-# Test for React
-#- script: |
-#    cd client
-#    npm install
-#    npm run test -- --coverage --ci --watchAll=false
-#  displayName: 'Juhil React tests'
