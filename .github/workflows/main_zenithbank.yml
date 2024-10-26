@@ -30,12 +30,12 @@ jobs:
 
       - name: Create virtual environment and install dependencies
         run: |
-          python -m venv venv
+          python3 -m venv venv  # Explicitly use python3 for venv
           if [ ! -d "venv" ]; then
             echo "Virtual environment creation failed"
             exit 1
           fi
-          ls -la  # List directory to check venv created
+          ls -la venv/bin  # List venv/bin to verify contents
           source venv/bin/activate
           pip install -r ./server/requirements.txt
 
