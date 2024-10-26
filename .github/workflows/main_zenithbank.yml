@@ -100,5 +100,5 @@ jobs:
         id: deploy-to-webapp
         with:
           app-name: 'ZenithBank'
-          slot-name: 'ZenithBank'
+          slot-name: 'ZenithBankMainDeployment'
           package: python-app.zip  # Specify the ZIP package for deployment
