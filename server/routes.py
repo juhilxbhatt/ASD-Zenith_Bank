@@ -285,52 +285,54 @@ def get_user_transactions():
 def add_transaction(user_id):
     data = request.json
     try:
-        # Log incoming transaction data for debugging
-        print("Incoming transaction data:", data)
-
-        # Validate the user's account
+        # Validate sender's account
         sender_account_id = ObjectId(data.get('accountId'))
         sender_account = accounts_collection.find_one({"_id": sender_account_id, "userID": ObjectId(user_id)})
-        
+
         if not sender_account:
             return jsonify({"error": "Sender account not found or does not belong to the user"}), 404
 
-        # If it's a transfer, verify recipient account
+        # Validate recipient account if it's a transfer
         recipient_account_id = data.get('recipient')
         if data['type'] == 'transfer' and recipient_account_id:
-            recipient_account = accounts_collection.find_one({"_id": ObjectId(recipient_account_id)})
+            recipient_account_id = ObjectId(recipient_account_id)
+            recipient_account = accounts_collection.find_one({"_id": recipient_account_id})
             if not recipient_account:
                 return jsonify({"error": "Recipient account not found"}), 404
 
-        # Ensure sufficient balance for transfers
-        if data['type'] == 'transfer' and sender_account['balance'] < data['amount']:
-            return jsonify({"error": "Insufficient balance in sender account"}), 400
-
-        # Create the transaction log
+        # Prepare transaction data
+        date = data.get('date', datetime.now().strftime("%Y-%m-%d"))
+        amount = float(data['amount'])
         new_transaction = {
-            "user_id": ObjectId(user_id),
-            "type": data['type'],
-            "amount": data['amount'],
-            "date": data['date'],
-            "category": data['category'],
-            "recipient": recipient_account_id if data['type'] == 'transfer' else None,
-            "accountId": sender_account_id
+            "AccountID": sender_account_id,
+            "CategoryID": data['category'],
+            "Date": date,
+            "Amount": -amount if data['type'] == 'transfer' else amount,
+            "Description": f"{data['type'].capitalize()} {'to' if data['type'] == 'transfer' else 'of'} ${amount}"
         }
 
-        # Insert the transaction into the 'transactions' collection
-        transactions_collection.insert_one(new_transaction)
+        # Insert the transaction log for the sender
+        transaction_logs_collection.insert_one(new_transaction)
 
-        # Update balances if necessary
-        if data['type'] == 'transfer' and recipient_account_id:
-            # Deduct from sender account
-            accounts_collection.update_one({"_id": sender_account_id}, {"$inc": {"balance": -data['amount']}})
-            # Add to recipient account
-            accounts_collection.update_one({"_id": ObjectId(recipient_account_id)}, {"$inc": {"balance": data['amount']}})
+        # If it's a transfer, create a corresponding entry for the recipient
+        if data['type'] == 'transfer':
+            recipient_transaction = {
+                "AccountID": recipient_account_id,
+                "CategoryID": data['category'],
+                "Date": date,
+                "Amount": amount,
+                "Description": f"Transfer from Account {str(sender_account_id)}"
+            }
+            transaction_logs_collection.insert_one(recipient_transaction)
+
+            # Update balances for both accounts
+            accounts_collection.update_one({"_id": sender_account_id}, {"$inc": {"balance": -amount}})
+            accounts_collection.update_one({"_id": recipient_account_id}, {"$inc": {"balance": amount}})
         
         return jsonify({"message": "Transaction added successfully"}), 201
     except Exception as e:
         print(f"Error in add_transaction: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An error occurred while processing the transaction"}), 500
 
 
 # Route to fetch payees for the logged-in user
