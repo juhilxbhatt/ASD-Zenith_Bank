@@ -43,7 +43,7 @@ jobs:
           pytest server/tests/ --junitxml=junit/test-results-flask.xml || echo "Tests skipped due to prior setup failure."
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: junit/test-results-*.xml
@@ -52,13 +52,13 @@ jobs:
       - name: Package Python App as ZIP
         run: |
           zip -r python-app.zip ./server  # Adjust path if necessary
+          ls -la python-app.zip  # Verify that the ZIP file was created
         continue-on-error: true
 
       - name: Upload Python App Artifact as ZIP
-        if: success() || failure()  # Ensures artifact is uploaded regardless of test success
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: python-app
+          name: python-app  # Ensure consistent naming
           path: python-app.zip
 
   deploy:
@@ -74,14 +74,19 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: python-app  # Matches name from the build job
+          name: python-app  # Ensure this matches the artifact name from the upload step
           path: ./  # Where to download the artifact locally
 
       - name: Check if artifact is downloaded
         run: ls -la || echo "Artifact download may have failed; no files listed."
 
       - name: Unzip artifact for deployment
-        run: unzip python-app.zip || echo "Unzip skipped as python-app.zip may not exist."
+        run: |
+          if [ -f python-app.zip ]; then
+            unzip python-app.zip || echo "Unzip failed, no release.zip found."
+          else
+            echo "Skipping unzip as python-app.zip does not exist."
+          fi
 
       - name: Login to Azure
         uses: azure/login@v2
