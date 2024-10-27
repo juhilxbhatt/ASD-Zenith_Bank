@@ -1,9 +1,9 @@
+/* Ensure the body and all elements have the intended background color */
 body {
-  background-color: #000;
-  color: #fff;
+  background-color: #fff; /* White background */
+  color: #000; /* Adjust text color to black for visibility */
   font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
+  align-items: center;
 }
 
 .login-page {
@@ -11,91 +11,109 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh; /* Full height of the viewport */
+  background-color: #fff; /* White background */
 }
 
 .login-container {
-  background-color: #1a1a1a; /* Dark background for the form container */
-  padding: 20px; /* Add some padding */
-  border-radius: 8px; /* Rounded corners for the container */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Shadow for depth */
-  width: 300px; /* Fixed width for the container */
-  text-align: center; /* Center align text */
+  background-color: #f8f9fa; /* Slightly off-white to differentiate the form container */
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for better contrast */
+  width: 320px;
+  text-align: center;
+  align-items: center;
 }
 
 h1 {
-  margin-bottom: 20px; /* Space below the title */
-  font-size: 24px; /* Title size */
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #000; /* Black title text */
 }
 
-.form-group {
-  margin-bottom: 15px; /* Space between form groups */
+.form-email {
+  margin-bottom: 15px;
+  width: 100%;
 }
 
 .form-label {
-  font-size: 14px; /* Adjust label size */
-  margin-bottom: 5px; /* Space between label and input */
-  width: 70px; /* Set a smaller width for the label */
-  display: inline-block; /* Ensures the width is respected */
+  font-size: 14px;
+  margin-bottom: 5px;
+  width: 70px;
+  display: inline-block;
+  color: #000; /* Black label text */
 }
 
+
+
 input {
-  padding: 10px; /* Increased padding for inputs */
-  border: 1px solid #333; /* Dark border for inputs */
-  border-radius: 4px; /* Rounded corners */
-  background-color: #fff; /* White background for inputs */
-  color: #000; /* Black text color inside inputs */
-  font-size: 14px; /* Input font size */
-  width: calc(100% - 20px); /* Full width for inputs, accounting for padding */
+  padding: 10px;
+  border: 1px solid #ccc; /* Light gray border for inputs */
+  border-radius: 4px;
+  background-color: #fff;
+  color: #000; /* Black text inside inputs */
+  font-size: 14px;
+  width: calc(100% - 20px);
 }
 
 .password-input-container {
   display: flex;
-  align-items: center; /* Center items vertically */
+  align-items: center;
 }
 
 .show-password-label {
-  margin-left: 10px; /* Space between input and checkbox label */
-  font-size: 14px; /* Label size for the checkbox */
+  margin-left: 10px;
+  color: #000;
+  font-size: 14px;
+}
+
+.password-input-container { 
+  display: flex;
+  color: #000;
 }
 
 .login-button {
-  padding: 12px 25px; /* Increased padding for a fatter button */
-  border: none; /* Remove border */
-  border-radius: 4px; /* Rounded corners */
-  background-color: #007bff; /* Bootstrap primary color */
-  color: #fff; /* White text for button */
-  font-size: 16px; /* Button text size */
-  cursor: pointer; /* Pointer cursor on hover */
-  transition: background-color 0.3s; /* Smooth transition */
-  margin-top: 10px; /* Space above the button */
+  padding: 12px 25px;
+  border: none;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px;
 }
 
 .login-button:hover {
-  background-color: #0056b3; /* Darker blue on hover */
+  background-color: #0056b3;
 }
 
 .register-text {
-  margin-top: 10px; /* Space above the register text */
-  cursor: pointer; /* Pointer cursor */
-  color: #007bff; /* Blue color for register text */
-  font-size: 14px; /* Font size */
-  white-space: nowrap; /* Prevent text wrapping */
+  margin-top: 10px;
+  cursor: pointer;
+  color: #007bff;
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .register-text:hover {
-  color: #00f; /* Change this to the color you want on hover (e.g., blue) */
+  color: #00f;
+}
+
+.register-container {
+  color: #000
 }
 
 .message-container {
-  margin-top: 20px; /* Space between inputs and messages */
+  color: #28a745;
+  margin-top: 20px;
 }
 
 .error {
-  color: #ff4d4d; /* Red color for error messages */
-  margin-top: 10px; /* Space above the error message */
+  color: #ff4d4d;
+  margin-top: 10px;
 }
 
 .success {
-  color: #28a745; /* Green color for success messages */
-  margin-top: 10px; /* Space above the success message */
+  color: #28a745;
+  margin-top: 10px;
 }
