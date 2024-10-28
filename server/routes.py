@@ -59,7 +59,7 @@ def get_user_transactions():
         # Get the user_id from the cookies
         user_id = request.cookies.get('user_id')
         if not user_id:
-            return jsonify({"error": "User not found in cookies"}), 400
+            raise ValueError("User ID not found in cookies!")
 
         # Convert user_id to ObjectId
         user_object_id = ObjectId(user_id)
