@@ -50,11 +50,11 @@ def get_user_id_from_cookies():
         print(f"Error converting user_id to ObjectId: {e}")
         raise ValueError("Invalid user ID format")
 
-# Route for the Monthly Bank Statement
+# Route for the Monthly Bank Statement with authentication check
 @api.route('/api/monthly_statement', methods=['GET'])
 def get_monthly_statement():
     try:
-        # Retrieve user_id from cookies
+        # Ensure the user is authenticated
         user_id = get_user_id_from_cookies()
         
         # Get month and year parameters from query
@@ -109,8 +109,6 @@ def get_monthly_statement():
         print(f"Error in get_monthly_statement: {e}")
         return jsonify({"error": "An error occurred while fetching the monthly statement"}), 500
 
-# Other API routes...
-
 # Route to handle user login
 @api.route('/api/LoginPage', methods=['POST'])
 def login():
@@ -135,6 +133,8 @@ def login():
         }), 200
     else:
         return jsonify({'error': 'Invalid password'}), 401
+
+# Additional API endpoints (not modified for the monthly statement functionality)
 
 # Route to create a new user
 @api.route('/api/create_user', methods=['POST'])
@@ -196,7 +196,7 @@ def create_account():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# API to fetch user transactions based on cookies
+# Route to fetch user transactions based on cookies
 @api.route('/api/user/transactions', methods=['GET'])
 def get_user_transactions():
     try:
@@ -218,6 +218,7 @@ def get_user_transactions():
         serialized_transactions = serialize_document(transactions)
         return jsonify(serialized_transactions), 200
     except Exception as e:
+        print(f"Error in get_user_transactions: {e}")
         return jsonify({"error": str(e)}), 500
 
 # API Endpoint to add a transaction (Transfer/Deposit)
@@ -241,6 +242,7 @@ def add_transaction():
         transactions_collection.insert_one(new_transaction)
         return jsonify({"message": "Transaction added successfully"}), 201
     except Exception as e:
+        print(f"Error in add_transaction: {e}")
         return jsonify({"error": str(e)}), 500
 
 # Route to fetch payees for the logged-in user
