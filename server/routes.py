@@ -533,3 +533,21 @@ def delete_payment(payment_id):
         return jsonify({'message': 'Payment successfully deleted!'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+    # Route to edit a scheduled payment
+@api.route('/api/edit_payment/<payment_id>', methods=['PUT'])
+def edit_payment(payment_id):
+    try:
+        # Get the data from the request
+        data = request.get_json()
+        updated_fields = {key: data[key] for key in data if key in ['amount', 'payee', 'payment_type', 'selected_date', 'recurrence', 'end_date', 'is_indefinite']}
+        
+        # Update the payment in the database
+        result = payment_collection.update_one({'_id': ObjectId(payment_id)}, {'$set': updated_fields})
+
+        if result.modified_count == 0:
+            return jsonify({'error': 'Payment not found or no changes made'}), 404
+
+        return jsonify({'message': 'Payment successfully updated!'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

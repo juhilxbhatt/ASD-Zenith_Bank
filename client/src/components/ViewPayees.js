@@ -140,7 +140,7 @@ const ViewPayee = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
-
+                <Paper elevation={3} sx={{ p: 3, mb: 5 }}>
                 <TableContainer component={Paper}>
                     <Table>
                         <TableHead>
@@ -190,7 +190,7 @@ const ViewPayee = () => {
                         </TableBody>
                     </Table>
                 </TableContainer>
-
+            </Paper>
                 {editingPayee && (
                     <Box sx={{ mt: 4 }}>
                         <Typography variant="h6" gutterBottom>
