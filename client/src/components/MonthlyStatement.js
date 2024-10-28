@@ -5,7 +5,21 @@ import { Line, Pie } from 'react-chartjs-2';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/system';
 
-// Define months as integers to match backend requirements
+// Chart.js setup
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
+
 const months = [
   { name: 'January', value: 1 },
   { name: 'February', value: 2 },
@@ -21,38 +35,55 @@ const months = [
   { name: 'December', value: 12 },
 ];
 
-function MonthlyStatement({ userId }) {
-  const [selectedMonth, setSelectedMonth] = useState(1);  // Use integer value for January by default
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  boxShadow: theme.shadows[4],
+  borderRadius: '15px',
+  '&:hover': {
+    boxShadow: theme.shadows[6],
+    transform: 'scale(1.03)',
+    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+  },
+}));
+
+function MonthlyStatement() {
+  const [selectedMonth, setSelectedMonth] = useState(1);
   const [transactions, setTransactions] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
   const fetchTransactions = async (month) => {
     try {
-      const response = await axios.get(`/api/user/transactions`, {
-        params: { month, year: new Date().getFullYear() }  // Pass month as integer
+      const response = await axios.get('/api/user/transactions', {
+        params: { month, year: new Date().getFullYear() },
       });
       setTransactions(response.data);
     } catch (error) {
       if (error.response && error.response.data.error) {
         setErrorMessage(error.response.data.error);
       } else {
-        console.error('Error fetching transactions', error);
+        setErrorMessage("Error fetching transactions. Please try logging in.");
       }
     }
   };
 
   useEffect(() => {
-    fetchTransactions(selectedMonth); // Fetch transactions whenever the selected month changes
+    axios.get('/api/check_authentication')
+      .then(() => {
+        fetchTransactions(selectedMonth);
+      })
+      .catch(() => {
+        setErrorMessage("User ID not found in cookies. Please log in to access this page.");
+      });
   }, [selectedMonth]);
 
   const totalIncome = transactions
-    ? transactions.filter((txn) => txn.type === 'deposit').reduce((acc, txn) => acc + txn.amount, 0)
-    : 0;
+    .filter((txn) => txn.type === 'deposit')
+    .reduce((acc, txn) => acc + txn.amount, 0);
 
   const totalExpenses = transactions
-    ? transactions.filter((txn) => txn.type === 'withdrawal').reduce((acc, txn) => acc + txn.amount, 0)
-    : 0;
+    .filter((txn) => txn.type === 'withdrawal')
+    .reduce((acc, txn) => acc + txn.amount, 0);
 
   if (errorMessage) {
     return (
@@ -64,38 +95,34 @@ function MonthlyStatement({ userId }) {
     );
   }
 
+  const lineChartData = {
+    labels: transactions.map((txn) => txn.date),
+    datasets: [
+      { label: 'Income', data: transactions.filter((txn) => txn.type === 'deposit').map((txn) => txn.amount) },
+      { label: 'Expenses', data: transactions.filter((txn) => txn.type === 'withdrawal').map((txn) => txn.amount) },
+    ],
+  };
+
   return (
     <Box sx={{ background: 'linear-gradient(to right, #2193b0, #6dd5ed)', minHeight: '100vh', py: 10 }}>
       <Container maxWidth="lg">
-        <Typography variant="h4" align="center" gutterBottom sx={{ color: '#fff', fontWeight: 'bold', mb: 3 }}>
-          Monthly Bank Statement
-        </Typography>
-        <Button variant="outlined" color="primary" onClick={() => navigate(-1)} sx={{ mb: 3, color: '#fff' }}>
-          Go Back
-        </Button>
+        <Typography variant="h4" align="center" gutterBottom sx={{ color: '#fff' }}>Monthly Bank Statement</Typography>
+        <Button variant="outlined" onClick={() => navigate(-1)} sx={{ mb: 3 }}>Go Back</Button>
 
         <FormControl fullWidth sx={{ mb: 3 }}>
-          <InputLabel sx={{ color: '#fff' }}>Select Month</InputLabel>
-          <Select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-            sx={{ color: '#fff' }}
-          >
+          <InputLabel>Select Month</InputLabel>
+          <Select value={selectedMonth} onChange={(e) => setSelectedMonth(parseInt(e.target.value))}>
             {months.map((month) => (
-              <MenuItem key={month.value} value={month.value}>
-                {month.name}
-              </MenuItem>
+              <MenuItem key={month.value} value={month.value}>{month.name}</MenuItem>
             ))}
           </Select>
         </FormControl>
 
         <Box sx={{ mb: 4, color: '#fff' }}>
-          <Typography variant="h6">Summary for {months.find(m => m.value === selectedMonth).name}:</Typography>
+          <Typography variant="h6">Summary for {months[selectedMonth - 1].name}:</Typography>
           <Typography variant="body1">Total Income: ${totalIncome}</Typography>
           <Typography variant="body1">Total Expenses: ${totalExpenses}</Typography>
         </Box>
-
-        {/* Render charts and details... */}
       </Container>
     </Box>
   );
