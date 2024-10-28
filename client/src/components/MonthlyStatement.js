@@ -5,6 +5,7 @@ import { Line, Pie } from 'react-chartjs-2';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/system';
 
+// Import necessary components from Chart.js
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -19,6 +20,7 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
+// Custom Card Styling
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
   boxShadow: theme.shadows[4],
@@ -30,6 +32,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   },
 }));
 
+// Mock months
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 function MonthlyStatement() {
@@ -38,24 +41,41 @@ function MonthlyStatement() {
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
+  // Fetch transactions from MongoDB via Flask backend
   const fetchTransactions = async (month) => {
     try {
       const response = await axios.get(`/api/user/transactions`, {
         params: { month },
-        withCredentials: true,
+        withCredentials: true,  // Ensure cookies are sent
       });
+
       setTransactions(response.data);
     } catch (error) {
-      setErrorMessage(error.response?.data?.error || 'An error occurred while fetching transactions.');
+      if (error.response && error.response.data.error) {
+        setErrorMessage(error.response.data.error);
+      } else {
+        console.error('Error fetching transactions', error);
+        setErrorMessage('An error occurred while fetching transactions.');
+      }
     }
   };
 
   useEffect(() => {
-    fetchTransactions(selectedMonth);
+    fetchTransactions(selectedMonth); // Fetch transactions when the month changes
   }, [selectedMonth]);
 
   const totalIncome = transactions.filter((txn) => txn.type === 'deposit').reduce((acc, txn) => acc + txn.amount, 0);
   const totalExpenses = transactions.filter((txn) => txn.type === 'withdrawal').reduce((acc, txn) => acc + txn.amount, 0);
+
+  if (errorMessage) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 5 }}>
+        <Typography variant="h4" align="center" color="error">
+          {errorMessage}
+        </Typography>
+      </Container>
+    );
+  }
 
   const lineChartData = {
     labels: transactions.map((txn) => txn.date),
@@ -88,7 +108,13 @@ function MonthlyStatement() {
   };
 
   return (
-    <Box sx={{ background: 'linear-gradient(to right, #2193b0, #6dd5ed)', minHeight: '100vh', py: 10 }}>
+    <Box
+      sx={{
+        background: 'linear-gradient(to right, #2193b0, #6dd5ed)',
+        minHeight: '100vh',
+        py: 10,
+      }}
+    >
       <Container maxWidth="lg">
         <Typography variant="h4" align="center" gutterBottom sx={{ color: '#fff', fontWeight: 'bold', mb: 3 }}>
           Monthly Bank Statement
@@ -102,7 +128,10 @@ function MonthlyStatement() {
             mb: 3,
             color: '#fff',
             borderColor: '#fff',
-            '&:hover': { backgroundColor: '#fff', color: '#2193b0' },
+            '&:hover': {
+              backgroundColor: '#fff',
+              color: '#2193b0',
+            },
           }}
         >
           Go Back
@@ -115,9 +144,15 @@ function MonthlyStatement() {
             onChange={(e) => setSelectedMonth(e.target.value)}
             sx={{
               color: '#fff',
-              '& .MuiOutlinedInput-notchedOutline': { borderColor: '#fff' },
-              '& .MuiSvgIcon-root': { color: '#fff' },
-              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#fff' },
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#fff',
+              },
+              '& .MuiSvgIcon-root': {
+                color: '#fff',
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#fff',
+              },
             }}
           >
             {months.map((month) => (
@@ -139,14 +174,18 @@ function MonthlyStatement() {
         <Grid container spacing={4}>
           <Grid item xs={12} md={6}>
             <StyledPaper>
-              <Typography variant="h6" gutterBottom>Income vs Expenses</Typography>
+              <Typography variant="h6" gutterBottom>
+                Income vs Expenses
+              </Typography>
               <Line data={lineChartData} />
             </StyledPaper>
           </Grid>
 
           <Grid item xs={12} md={6}>
             <StyledPaper>
-              <Typography variant="h6" gutterBottom>Transaction Breakdown by Category</Typography>
+              <Typography variant="h6" gutterBottom>
+                Transaction Breakdown by Category
+              </Typography>
               <Pie data={pieChartData} />
             </StyledPaper>
           </Grid>
@@ -155,12 +194,18 @@ function MonthlyStatement() {
         <Divider sx={{ my: 3, backgroundColor: '#fff' }} />
 
         <StyledPaper>
-          <Typography variant="h6" gutterBottom>Detailed Transactions:</Typography>
+          <Typography variant="h6" gutterBottom>
+            Detailed Transactions:
+          </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {transactions.map((txn, index) => (
               <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2">{txn.date} - {txn.category} - {txn.type === 'deposit' ? 'Income' : 'Expense'}</Typography>
-                <Typography variant="body2" color={txn.type === 'deposit' ? 'primary' : 'secondary'}>${txn.amount}</Typography>
+                <Typography variant="body2">
+                  {txn.date} - {txn.category} - {txn.type === 'deposit' ? 'Income' : 'Expense'}
+                </Typography>
+                <Typography variant="body2" color={txn.type === 'deposit' ? 'primary' : 'secondary'}>
+                  ${txn.amount}
+                </Typography>
               </Box>
             ))}
           </Box>
