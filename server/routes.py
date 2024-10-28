@@ -39,8 +39,6 @@ def serialize_document(document):
     else:
         return document
 
-
-
 # Helper function to get user_id from cookies
 def get_user_id_from_cookies():
     user_id = request.cookies.get('user_id')
@@ -111,287 +109,136 @@ def get_monthly_statement():
         print(f"Error in get_monthly_statement: {e}")
         return jsonify({"error": "An error occurred while fetching the monthly statement"}), 500
 
-
-
+# Other API routes...
 
 # Route to handle user login
 @api.route('/api/LoginPage', methods=['POST'])
 def login():
     data = request.get_json()
-    email = data.get('email')  # Capture email from request
+    email = data.get('email')
     password = data.get('password')
 
-    # Find the user by email
     user = users_collection.find_one({'email': email})
-
     if not user:
-        return jsonify({'error': 'User not found'}), 404  # User not found
+        return jsonify({'error': 'User not found'}), 404
 
-    # Check the password
     if check_password_hash(user['password'], password):
         return jsonify({
             'message': 'Login successful', 
             'user': {
-                'id': str(user['_id']),  # Convert ObjectId to string for JSON serialization
+                'id': str(user['_id']),
                 'first_name': user['first_name'],
                 'last_name': user['last_name'], 
                 'email': user['email'], 
                 'address': user.get('address', 'N/A')
             }
-        }), 200  # Login successful
+        }), 200
     else:
-        return jsonify({'error': 'Invalid password'}), 401  # Invalid password
-
-# Additional API endpoints (not modified for the monthly statement functionality)
+        return jsonify({'error': 'Invalid password'}), 401
 
 # Route to create a new user
 @api.route('/api/create_user', methods=['POST'])
 def create_user():
     try:
         data = request.get_json()
-        
-        # Validate required fields
         if not all(field in data for field in ['first_name', 'last_name', 'email', 'password']):
             return jsonify({"error": "All fields are required!"}), 400
 
-        # Hash the password
         hashed_password = generate_password_hash(data['password'])
         
-        # Create a new user with first name, last name, and hashed password
         new_user = {
             "first_name": data['first_name'],
             "last_name": data['last_name'],
-            "password": hashed_password,  # Store the hashed password
+            "password": hashed_password,
             "email": data['email'],
-            "address": data.get('address', "")  # Default to empty string if address not provided
+            "address": data.get('address', "")
         }
         
-        # Insert the new user into the 'users' collection
         users_collection.insert_one(new_user)
-
         return jsonify({"message": "User created successfully!"}), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-    
-
 @api.route('/api/check_email', methods=['GET'])
 def check_email():
-    email = request.args.get('email')  # Get the email from the query parameter
-
+    email = request.args.get('email')
     if not email:
         return jsonify({"error": "Email is required!"}), 400
 
-    # Check if the email already exists in the 'users' collection
     existing_user = users_collection.find_one({"email": email})
-
     if existing_user:
-        return jsonify({"exists": True}), 200  # Email exists
+        return jsonify({"exists": True}), 200
     else:
-        return jsonify({"exists": False}), 200  # Email does not exist
-
+        return jsonify({"exists": False}), 200
 
 @api.route('/api/create_account', methods=['POST'])
 def create_account():
     try:
-        # Get data from the POST request
         data = request.get_json()
-
-        # Log the received data
-        print("Received data:", data)  # Add logging for debugging
-
-        # Get user_id from the cookies
         user_id = request.cookies.get('user_id')
-        print("User ID from cookie:", user_id)  # Log user ID
-
         if not user_id:
             return jsonify({"error": "User ID not found in cookies!"}), 400
 
-        # Check if the user exists in the 'users' collection
         user = users_collection.find_one({"_id": ObjectId(user_id)})
         if not user:
             return jsonify({"error": "User not found!"}), 404
 
-        # Prepare the account data
         new_account = {
-            "userID": ObjectId(user_id),  # Use user_id from cookies
+            "userID": ObjectId(user_id),
             "accountType": data['accountType'],
             "balance": float(data['balance']),
             "status": 'Active'
         }
-
-        # Insert the new account into the 'accounts' collection
         result = accounts_collection.insert_one(new_account)
-
-        # Return a success message with the inserted ID
         return jsonify({"message": "Account created successfully!", "account_id": str(result.inserted_id)}), 200
 
     except Exception as e:
-        print(f"Error in create_account: {str(e)}")  # Log the exception message
         return jsonify({"error": str(e)}), 500
 
-# Route to fetch all accounts
-@api.route('/api/transaction_logs', methods=['GET'])
-def get_transaction_logs():
-    try:
-        # Get user_id from the cookies
-        user_id = request.cookies.get('user_id')
-
-        if not user_id:
-            return jsonify({"error": "User ID not found in cookies!"}), 400
-
-        # Convert the user_id to an ObjectId
-        user_id = ObjectId(user_id)
-
-        # Find all accounts associated with the user
-        accounts = list(accounts_collection.find({"userID": user_id}, {"_id": 1}))
-
-        if not accounts:
-            return jsonify({"message": "No accounts found for this user"}), 404
-
-        # Extract account IDs
-        account_ids = [account["_id"] for account in accounts]
-
-        # Create query filters for transactions (multiple accounts)
-        query = {"AccountID": {"$in": account_ids}}  # Match any of the user's accounts
-
-        # Fetch the filtered transaction logs
-        transaction_logs = list(transaction_logs_collection.find(
-            query,
-            {'Amount': 1, 'Date': 1, 'Description': 1, 'AccountID': 1, '_id': 0}
-        ))
-
-        # Create a function to serialize ObjectId
-        def serialize(data):
-            if isinstance(data, ObjectId):
-                return str(data)
-            if isinstance(data, list):
-                return [serialize(item) for item in data]
-            if isinstance(data, dict):
-                return {key: serialize(value) for key, value in data.items()}
-            return data
-
-        # Serialize transaction logs and accounts
-        serialized_transaction_logs = serialize(transaction_logs)
-        serialized_accounts = serialize(accounts)
-
-        # Create response object
-        response = {
-            "UserID": str(user_id),
-            "TransactionLogs": serialized_transaction_logs,
-            "Accounts": serialized_accounts
-        }
-
-        return jsonify(response), 200
-
-    except Exception as e:
-        print(f"Error fetching transaction logs: {e}")
-        return jsonify({"error": str(e)}), 500
-    
-# Route to fetch account details by account IDs
-@api.route('/api/account_details', methods=['GET'])
-def get_account_details():
-    try:
-        # Get user_id from the cookies
-        user_id = request.cookies.get('user_id')
-
-        if not user_id:
-            return jsonify({"error": "User ID not found in cookies!"}), 400
-
-        # Convert the user_id to an ObjectId
-        user_id = ObjectId(user_id)
-
-        # Get account IDs from query parameters
-        account_ids = request.args.getlist('account_ids')  # List of account IDs
-
-        # Convert account IDs to ObjectId
-        object_ids = [ObjectId(account_id) for account_id in account_ids]
-
-        # Find accounts by IDs
-        accounts = list(accounts_collection.find({"_id": {"$in": object_ids}, "userID": user_id}))
-
-        if not accounts:
-            return jsonify({"message": "No accounts found for the provided IDs."}), 404
-
-        # Serialize account data
-        serialized_accounts = []
-        for account in accounts:
-            serialized_accounts.append({
-                "id": str(account["_id"]),
-                "userID": str(account["userID"]),
-                "accountType": account["accountType"],
-                "balance": account["balance"],
-                "status": account["status"]
-            })
-
-        return jsonify(serialized_accounts), 200
-
-    except Exception as e:
-        print(f"Error fetching account details: {e}")
-        return jsonify({"error": str(e)}), 500
-    
-# API Endpoint to fetch user transactions based on cookies
-# Route to fetch user transactions based on cookies
+# API to fetch user transactions based on cookies
 @api.route('/api/user/transactions', methods=['GET'])
 def get_user_transactions():
     try:
-        # Get the user_id from the cookies
         user_id = request.cookies.get('user_id')
         if not user_id:
             return jsonify({"error": "User not found in cookies"}), 400
 
-        # Convert user_id to ObjectId
         user_object_id = ObjectId(user_id)
-
-        # Get the month filter if provided
         month = request.args.get('month', None)
-        year = request.args.get('year', None)  # Optional year filter
+        year = request.args.get('year', None)
 
-        # Build the query to fetch user transactions
         query = {"user_id": user_object_id}
-
         if month and year:
-            # Create date range for the given month and year
             start_date = datetime(int(year), int(month), 1)
             end_date = datetime(int(year), int(month) + 1, 1) if int(month) < 12 else datetime(int(year) + 1, 1, 1)
             query["date"] = {"$gte": start_date, "$lt": end_date}
 
-        # Fetch transactions from MongoDB
         transactions = list(transactions_collection.find(query))
-        
-        # Serialize transactions to handle ObjectId fields
         serialized_transactions = serialize_document(transactions)
-
         return jsonify(serialized_transactions), 200
     except Exception as e:
-        print(f"Error in get_user_transactions: {e}")
         return jsonify({"error": str(e)}), 500
 
 # API Endpoint to add a transaction (Transfer/Deposit)
 @api.route('/api/user/transaction', methods=['POST'])
 def add_transaction():
     try:
-        # Get user_id from cookies
         user_id = request.cookies.get('user_id')
-        print(user_id)
         if not user_id:
             return jsonify({"error": "User not found in cookies"}), 400
 
-        # Convert user_id to ObjectId
         user_object_id = ObjectId(user_id)
-
         data = request.json
         new_transaction = {
             "user_id": user_object_id,
-            "type": data['type'],  # Either 'deposit' or 'transfer'
+            "type": data['type'],
             "amount": data['amount'],
-            "date": data['date'],  # Expected format 'YYYY-MM-DD'
+            "date": data['date'],
             "category": data['category'],
-            "recipient": data.get('recipient', None)  # Only relevant for transfers
+            "recipient": data.get('recipient', None)
         }
         transactions_collection.insert_one(new_transaction)
-
         return jsonify({"message": "Transaction added successfully"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
