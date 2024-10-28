@@ -63,7 +63,7 @@ def get_user_transactions():
         # Convert user_id to ObjectId
         user_object_id = ObjectId(user_id)
 
-        # Get the month filter if provided
+        # Get the month and year filter if provided
         month = request.args.get('month', None)
         year = request.args.get('year', None)  # Optional year filter
 
@@ -76,8 +76,8 @@ def get_user_transactions():
             end_date = datetime(int(year), int(month) + 1, 1) if int(month) < 12 else datetime(int(year) + 1, 1, 1)
             query["date"] = {"$gte": start_date, "$lt": end_date}
 
-        # Fetch transactions from MongoDB
-        transactions = list(transactions_collection.find(query))
+        # Fetch transactions from MongoDB, ensuring all recent data is retrieved
+        transactions = list(transactions_collection.find(query).sort("date", -1))
         
         # Serialize transactions to handle ObjectId fields
         serialized_transactions = serialize_document(transactions)
