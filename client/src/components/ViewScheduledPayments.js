@@ -42,7 +42,7 @@ const ViewScheduledPayments = () => {
   };
 
   const handleAnother = () => {
-    navigate('/SchedulePayment');
+    navigate('/Schedule-Payment');
   };
 
   const handleDeletePayment = async (paymentId) => {

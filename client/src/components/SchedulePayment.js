@@ -95,7 +95,7 @@ function SchedulePayment() {
             setEndDate("");
             setRecurrence("weekly");
             setPaymentType("one-off");
-            navigate('/ViewScheduledPayments');
+            navigate('/view-scheduled-payments');
         } catch (err) {
             setError(err.response?.data?.error || "An error occurred while scheduling the payment.");
         }
