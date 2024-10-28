@@ -5,11 +5,24 @@ import { Line, Pie } from 'react-chartjs-2';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/system';
 
-// Define months (in case they are not dynamically fetched)
-const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+// Define months as integers to match backend requirements
+const months = [
+  { name: 'January', value: 1 },
+  { name: 'February', value: 2 },
+  { name: 'March', value: 3 },
+  { name: 'April', value: 4 },
+  { name: 'May', value: 5 },
+  { name: 'June', value: 6 },
+  { name: 'July', value: 7 },
+  { name: 'August', value: 8 },
+  { name: 'September', value: 9 },
+  { name: 'October', value: 10 },
+  { name: 'November', value: 11 },
+  { name: 'December', value: 12 },
+];
 
 function MonthlyStatement({ userId }) {
-  const [selectedMonth, setSelectedMonth] = useState('January');
+  const [selectedMonth, setSelectedMonth] = useState(1);  // Use integer value for January by default
   const [transactions, setTransactions] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
@@ -17,7 +30,7 @@ function MonthlyStatement({ userId }) {
   const fetchTransactions = async (month) => {
     try {
       const response = await axios.get(`/api/user/transactions`, {
-        params: { month, year: new Date().getFullYear() }
+        params: { month, year: new Date().getFullYear() }  // Pass month as integer
       });
       setTransactions(response.data);
     } catch (error) {
@@ -30,7 +43,7 @@ function MonthlyStatement({ userId }) {
   };
 
   useEffect(() => {
-    fetchTransactions(selectedMonth); // Fetch transactions when the month changes or component loads
+    fetchTransactions(selectedMonth); // Fetch transactions whenever the selected month changes
   }, [selectedMonth]);
 
   const totalIncome = transactions
@@ -63,17 +76,21 @@ function MonthlyStatement({ userId }) {
 
         <FormControl fullWidth sx={{ mb: 3 }}>
           <InputLabel sx={{ color: '#fff' }}>Select Month</InputLabel>
-          <Select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} sx={{ color: '#fff' }}>
-            {months.map((month, index) => (
-              <MenuItem key={index} value={index + 1}>
-                {month}
+          <Select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+            sx={{ color: '#fff' }}
+          >
+            {months.map((month) => (
+              <MenuItem key={month.value} value={month.value}>
+                {month.name}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
 
         <Box sx={{ mb: 4, color: '#fff' }}>
-          <Typography variant="h6">Summary for {months[selectedMonth - 1]}:</Typography>
+          <Typography variant="h6">Summary for {months.find(m => m.value === selectedMonth).name}:</Typography>
           <Typography variant="body1">Total Income: ${totalIncome}</Typography>
           <Typography variant="body1">Total Expenses: ${totalExpenses}</Typography>
         </Box>
