@@ -5,7 +5,7 @@ import { Line, Pie } from 'react-chartjs-2';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/system';
 
-// Chart.js setup
+// Import necessary components from Chart.js
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -20,21 +20,7 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
-const months = [
-  { name: 'January', value: 1 },
-  { name: 'February', value: 2 },
-  { name: 'March', value: 3 },
-  { name: 'April', value: 4 },
-  { name: 'May', value: 5 },
-  { name: 'June', value: 6 },
-  { name: 'July', value: 7 },
-  { name: 'August', value: 8 },
-  { name: 'September', value: 9 },
-  { name: 'October', value: 10 },
-  { name: 'November', value: 11 },
-  { name: 'December', value: 12 },
-];
-
+// Custom Card Styling
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
   boxShadow: theme.shadows[4],
@@ -46,44 +32,38 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   },
 }));
 
+// Mock months
+const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
 function MonthlyStatement() {
-  const [selectedMonth, setSelectedMonth] = useState(1);
+  const [selectedMonth, setSelectedMonth] = useState('January');
   const [transactions, setTransactions] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
+  // Fetch transactions from MongoDB via Flask backend
   const fetchTransactions = async (month) => {
     try {
-      const response = await axios.get('/api/user/transactions', {
-        params: { month, year: new Date().getFullYear() },
+      const response = await axios.get(`/api/user/transactions`, {
+        params: { month },
+        withCredentials: true,  // Ensure cookies are sent
       });
       setTransactions(response.data);
     } catch (error) {
       if (error.response && error.response.data.error) {
         setErrorMessage(error.response.data.error);
       } else {
-        setErrorMessage("Error fetching transactions. Please try logging in.");
+        console.error('Error fetching transactions', error);
       }
     }
   };
 
   useEffect(() => {
-    axios.get('/api/check_authentication')
-      .then(() => {
-        fetchTransactions(selectedMonth);
-      })
-      .catch(() => {
-        setErrorMessage("User ID not found in cookies. Please log in to access this page.");
-      });
+    fetchTransactions(selectedMonth); // Fetch transactions when the month changes
   }, [selectedMonth]);
 
-  const totalIncome = transactions
-    .filter((txn) => txn.type === 'deposit')
-    .reduce((acc, txn) => acc + txn.amount, 0);
-
-  const totalExpenses = transactions
-    .filter((txn) => txn.type === 'withdrawal')
-    .reduce((acc, txn) => acc + txn.amount, 0);
+  const totalIncome = transactions.filter((txn) => txn.type === 'deposit').reduce((acc, txn) => acc + txn.amount, 0);
+  const totalExpenses = transactions.filter((txn) => txn.type === 'withdrawal').reduce((acc, txn) => acc + txn.amount, 0);
 
   if (errorMessage) {
     return (
@@ -98,31 +78,136 @@ function MonthlyStatement() {
   const lineChartData = {
     labels: transactions.map((txn) => txn.date),
     datasets: [
-      { label: 'Income', data: transactions.filter((txn) => txn.type === 'deposit').map((txn) => txn.amount) },
-      { label: 'Expenses', data: transactions.filter((txn) => txn.type === 'withdrawal').map((txn) => txn.amount) },
+      {
+        label: 'Income',
+        data: transactions.filter((txn) => txn.type === 'deposit').map((txn) => txn.amount),
+        borderColor: 'rgba(54, 162, 235, 1)',
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        fill: true,
+      },
+      {
+        label: 'Expenses',
+        data: transactions.filter((txn) => txn.type === 'withdrawal').map((txn) => txn.amount),
+        borderColor: 'rgba(255, 99, 132, 1)',
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        fill: true,
+      },
+    ],
+  };
+
+  const pieChartData = {
+    labels: [...new Set(transactions.map((txn) => txn.category))],
+    datasets: [
+      {
+        data: transactions.map((txn) => txn.amount),
+        backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(75, 192, 192, 0.6)'],
+      },
     ],
   };
 
   return (
-    <Box sx={{ background: 'linear-gradient(to right, #2193b0, #6dd5ed)', minHeight: '100vh', py: 10 }}>
+    <Box
+      sx={{
+        background: 'linear-gradient(to right, #2193b0, #6dd5ed)',
+        minHeight: '100vh',
+        py: 10,
+      }}
+    >
       <Container maxWidth="lg">
-        <Typography variant="h4" align="center" gutterBottom sx={{ color: '#fff' }}>Monthly Bank Statement</Typography>
-        <Button variant="outlined" onClick={() => navigate(-1)} sx={{ mb: 3 }}>Go Back</Button>
+        <Typography variant="h4" align="center" gutterBottom sx={{ color: '#fff', fontWeight: 'bold', mb: 3 }}>
+          Monthly Bank Statement
+        </Typography>
+
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => navigate(-1)}
+          sx={{
+            mb: 3,
+            color: '#fff',
+            borderColor: '#fff',
+            '&:hover': {
+              backgroundColor: '#fff',
+              color: '#2193b0',
+            },
+          }}
+        >
+          Go Back
+        </Button>
 
         <FormControl fullWidth sx={{ mb: 3 }}>
-          <InputLabel>Select Month</InputLabel>
-          <Select value={selectedMonth} onChange={(e) => setSelectedMonth(parseInt(e.target.value))}>
+          <InputLabel sx={{ color: '#fff' }}>Select Month</InputLabel>
+          <Select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            sx={{
+              color: '#fff',
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#fff',
+              },
+              '& .MuiSvgIcon-root': {
+                color: '#fff',
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#fff',
+              },
+            }}
+          >
             {months.map((month) => (
-              <MenuItem key={month.value} value={month.value}>{month.name}</MenuItem>
+              <MenuItem key={month} value={month}>
+                {month}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
 
         <Box sx={{ mb: 4, color: '#fff' }}>
-          <Typography variant="h6">Summary for {months[selectedMonth - 1].name}:</Typography>
+          <Typography variant="h6">Summary for {selectedMonth}:</Typography>
           <Typography variant="body1">Total Income: ${totalIncome}</Typography>
           <Typography variant="body1">Total Expenses: ${totalExpenses}</Typography>
         </Box>
+
+        <Divider sx={{ my: 3, backgroundColor: '#fff' }} />
+
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={6}>
+            <StyledPaper>
+              <Typography variant="h6" gutterBottom>
+                Income vs Expenses
+              </Typography>
+              <Line data={lineChartData} />
+            </StyledPaper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <StyledPaper>
+              <Typography variant="h6" gutterBottom>
+                Transaction Breakdown by Category
+              </Typography>
+              <Pie data={pieChartData} />
+            </StyledPaper>
+          </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 3, backgroundColor: '#fff' }} />
+
+        <StyledPaper>
+          <Typography variant="h6" gutterBottom>
+            Detailed Transactions:
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {transactions.map((txn, index) => (
+              <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2">
+                  {txn.date} - {txn.category} - {txn.type === 'deposit' ? 'Income' : 'Expense'}
+                </Typography>
+                <Typography variant="body2" color={txn.type === 'deposit' ? 'primary' : 'secondary'}>
+                  ${txn.amount}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </StyledPaper>
       </Container>
     </Box>
   );

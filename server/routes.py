@@ -63,40 +63,29 @@ def get_user_transactions():
 
         # Convert user_id to ObjectId
         user_object_id = ObjectId(user_id)
-        print(f"Fetching transactions for user: {user_object_id}")  # Log user_id for debugging
 
-        # Get the month and year filter if provided
+        # Get the month filter if provided
         month = request.args.get('month', None)
-        year = request.args.get('year', datetime.now().year)  # Default to current year
+        year = request.args.get('year', None)  # Optional year filter
 
-        # Ensure month and year are integers
-        try:
-            month = int(month)
-            year = int(year)
-        except ValueError:
-            return jsonify({"error": "Invalid month or year format"}), 400
+        # Build the query to fetch user transactions
+        query = {"user_id": user_object_id}
 
-        # Build the query to fetch user transactions within the specified month
-        start_date = datetime(year, month, 1)
-        end_date = datetime(year, month + 1, 1) if month < 12 else datetime(year + 1, 1, 1)
-        
-        query = {
-            "user_id": user_object_id,
-            "date": {"$gte": start_date, "$lt": end_date}
-        }
+        if month and year:
+            # Create date range for the given month and year
+            start_date = datetime(int(year), int(month), 1)
+            end_date = datetime(int(year), int(month) + 1, 1) if int(month) < 12 else datetime(int(year) + 1, 1, 1)
+            query["date"] = {"$gte": start_date, "$lt": end_date}
 
         # Fetch transactions from MongoDB
         transactions = list(transactions_collection.find(query))
         
-        # Serialize ObjectId fields for JSON response
-        for txn in transactions:
-            txn['_id'] = str(txn['_id'])
-            txn['user_id'] = str(txn['user_id'])
-            txn['date'] = txn['date'].strftime("%Y-%m-%d")  # Format date for JSON
+        # Serialize transactions to handle ObjectId fields
+        serialized_transactions = serialize_document(transactions)
 
-        return jsonify(transactions), 200
+        return jsonify(serialized_transactions), 200
     except Exception as e:
-        print(f"Error fetching transactions: {e}")
+        print(f"Error in get_user_transactions: {e}")
         return jsonify({"error": str(e)}), 500
 
 # Route to handle user login
