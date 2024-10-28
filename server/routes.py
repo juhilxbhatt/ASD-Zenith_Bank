@@ -68,6 +68,7 @@ def get_monthly_statement():
         # Find all accounts associated with the user
         accounts = list(accounts_collection.find({"userID": user_id}, {"_id": 1}))
         if not accounts:
+            print("No accounts found for this user.")
             return jsonify({"error": "No accounts found for this user"}), 404
 
         # Extract account IDs for the user
@@ -79,6 +80,9 @@ def get_monthly_statement():
             "Date": {"$gte": start_date, "$lt": end_date}
         }
         transactions = list(transaction_logs_collection.find(query))
+
+        # Debug: Print transactions retrieved
+        print("Transactions retrieved:", transactions)
 
         # Process the transactions to build the monthly statement summary
         total_income = sum(txn['Amount'] for txn in transactions if txn['Amount'] > 0)
