@@ -172,30 +172,6 @@ def create_account():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Route to fetch user transactions based on cookies
-@api.route('/api/user/transactions', methods=['GET'])
-def get_user_transactions():
-    try:
-        user_id = request.cookies.get('user_id')
-        if not user_id:
-            return jsonify({"error": "User not found in cookies"}), 400
-
-        user_object_id = ObjectId(user_id)
-        month = request.args.get('month', None)
-        year = request.args.get('year', None)
-
-        query = {"user_id": user_object_id}
-        if month and year:
-            start_date = datetime(int(year), int(month), 1)
-            end_date = datetime(int(year), int(month) + 1, 1) if int(month) < 12 else datetime(int(year) + 1, 1, 1)
-            query["date"] = {"$gte": start_date, "$lt": end_date}
-
-        transactions = list(transactions_collection.find(query))
-        serialized_transactions = serialize_document(transactions)
-        return jsonify(serialized_transactions), 200
-    except Exception as e:
-        print(f"Error in get_user_transactions: {e}")
-        return jsonify({"error": str(e)}), 500
 
 # API Endpoint to add a transaction (Transfer/Deposit)
 @api.route('/api/user/transaction', methods=['POST'])
