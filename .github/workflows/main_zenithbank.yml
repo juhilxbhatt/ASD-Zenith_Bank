@@ -1,104 +1,103 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline  # Define the name of the pipeline
 
 on:
   push:
     branches:
-      - '*'  # Run on any branch
+      - '*'  # Trigger pipeline on any branch push event
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Use the latest Ubuntu environment
 
     steps:
-      - name: Checkout code
+      - name: Checkout code  # Step to checkout the code from the repository
         uses: actions/checkout@v4
 
       - name: Update and Upgrade python-virtualenv
         run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-virtualenv
+          sudo apt-get update  # Update the package list
+          sudo apt-get install -y python3-virtualenv  # Install virtualenv for Python3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5  # Use setup-python action
         with:
-          python-version: '3.12'
+          python-version: '3.12'  # Specify Python version to use
 
-      - name: Confirm Python version and location
+      - name: Confirm Python version and location  # Verify Python installation
         run: |
-          python --version
-          which python
+          python --version  # Print Python version
+          which python  # Show Python installation location
 
       - name: Create virtual environment and install dependencies
         run: |
-          python3 -m venv venv || { echo "Virtual environment creation failed, continuing..."; }
-          ls -la venv/bin || true
-          source venv/bin/activate || echo "Skipping activation as venv creation failed."
-          pip install -r ./server/requirements.txt || echo "Skipping dependency installation as venv creation failed."
-        continue-on-error: true
+          python3 -m venv venv || { echo "Virtual environment creation failed, continuing..."; }  # Create venv
+          ls -la venv/bin || true  # List venv directory contents if it exists
+          source venv/bin/activate || echo "Skipping activation as venv creation failed."  # Activate venv
+          pip install -r ./server/requirements.txt || echo "Skipping dependency installation as venv creation failed."  # Install dependencies
+        continue-on-error: true  # Continue even if this step fails
 
-      - name: Run Flask tests
+      - name: Run Flask tests  # Run Flask tests with pytest
         run: |
           source venv/bin/activate || echo "Skipping test run as venv activation failed."
-          export PYTHONPATH=$(pwd)/server
-          pytest server/tests/ --junitxml=junit/test-results-flask.xml || echo "Tests skipped due to prior setup failure."
+          export PYTHONPATH=$(pwd)/server  # Set PYTHONPATH to server directory
+          pytest server/tests/ --junitxml=junit/test-results-flask.xml || echo "Tests skipped due to prior setup failure."  # Run tests and output results
 
-      - name: Upload Test Results
+      - name: Upload Test Results  # Upload test results as an artifact
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
-          path: junit/test-results-*.xml
-        continue-on-error: true
+          name: test-results  # Name of the uploaded artifact
+          path: junit/test-results-*.xml  # Path to test results
+        continue-on-error: true  # Continue even if this step fails
 
-      - name: Package Python App as ZIP
+      - name: Package Python App as ZIP  # Package the Python application as a ZIP file
         run: |
-          zip -r python-app.zip ./server  # Adjust path if necessary
-          ls -la python-app.zip  # Verify that the ZIP file was created
-        continue-on-error: true
+          zip -r python-app.zip ./server  # Zip the server folder
+          ls -la python-app.zip  # Confirm the ZIP file creation
+        continue-on-error: true  # Continue even if this step fails
 
-      - name: Upload Python App Artifact as ZIP
+      - name: Upload Python App Artifact as ZIP  # Upload ZIP package as an artifact
         uses: actions/upload-artifact@v4
         with:
-          name: python-app  # Ensure consistent naming
-          path: python-app.zip
+          name: python-app  # Name for the ZIP artifact
+          path: python-app.zip  # Path to the ZIP file
 
   deploy:
-    runs-on: ubuntu-latest
-    needs: build
+    runs-on: ubuntu-latest  # Deploy job on Ubuntu environment
+    needs: build  # Run deploy only if build completes successfully
     environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      name: 'Production'  # Set the environment to Production
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}  # Capture webapp URL output
     permissions:
-      id-token: write
+      id-token: write  # Set permissions for deployment
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact from build job  # Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: python-app  # Ensure this matches the artifact name from the upload step
-          path: ./  # Where to download the artifact locally
+          name: python-app  # Match artifact name from build job
+          path: ./  # Local path to save downloaded artifact
 
-      - name: Check if artifact is downloaded
+      - name: Check if artifact is downloaded  # Confirm artifact download
         run: ls -la || echo "Artifact download may have failed; no files listed."
 
-      - name: Unzip artifact for deployment
+      - name: Unzip artifact for deployment  # Unzip the downloaded artifact
         run: |
           if [ -f python-app.zip ]; then
-            unzip python-app.zip || echo "Unzip failed, no release.zip found."
+            unzip python-app.zip || echo "Unzip failed, no release.zip found."  # Unzip if the ZIP exists
           else
             echo "Skipping unzip as python-app.zip does not exist."
-          fi
 
-      - name: Login to Azure
+      - name: Login to Azure  # Azure CLI login step for deployment
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_105CA05E1EB24381A4CED4C2633EB827 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5CA35E7865BC4BE19065D62C3CE5DCBF }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D76130A6606C44C8AD9728B82654D077 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_105CA05E1EB24381A4CED4C2633EB827 }}  # Client ID from secrets
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5CA35E7865BC4BE19065D62C3CE5DCBF }}  # Tenant ID from secrets
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D76130A6606C44C8AD9728B82654D077 }}  # Subscription ID
 
-      - name: 'Deploy to Azure Web App'
+      - name: 'Deploy to Azure Web App'  # Step to deploy the app to Azure
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: 'ZenithBank'
-          slot-name: 'production'
+          app-name: 'ZenithBank'  # Azure Web App name
+          slot-name: 'production'  # Deployment slot
           package: python-app.zip  # Specify the ZIP package for deployment
