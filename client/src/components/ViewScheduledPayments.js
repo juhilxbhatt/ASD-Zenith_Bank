@@ -1,27 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Button,
-  Box,
-  Typography,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Alert,
-  Grid,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
+  Button, Box, Typography, Paper, Table, TableBody, TableCell,
+  TableContainer, TableHead, TableRow, Alert, Grid, Dialog,
+  DialogTitle, DialogContent, DialogActions, TextField, Select,
+  MenuItem, FormControl, InputLabel, Checkbox, FormControlLabel,
 } from '@mui/material';
 
 const ViewScheduledPayments = () => {
@@ -32,6 +15,7 @@ const ViewScheduledPayments = () => {
   const [editingSchedule, setEditingSchedule] = useState(null);
   const [formData, setFormData] = useState({});
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedPayments, setSelectedPayments] = useState(new Set());
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -61,7 +45,7 @@ const ViewScheduledPayments = () => {
     };
 
     fetchPayments();
-    fetchPayees(); 
+    fetchPayees();
   }, []);
 
   const handleBack = () => {
@@ -99,7 +83,6 @@ const ViewScheduledPayments = () => {
 
   const handleUpdatePayment = async () => {
     try {
-      // Find the selected payee by ID
       const selectedPayee = payees.find(payee => payee._id === formData.payee);
       const payeeName = selectedPayee ? `${selectedPayee.first_name} ${selectedPayee.last_name}` : '';
 
@@ -123,23 +106,40 @@ const ViewScheduledPayments = () => {
     }
   };
 
-  const handleDeletePayment = async (paymentId) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this payment?');
+  const handleDeleteSelectedPayments = async () => {
+    const confirmDelete = window.confirm('Are you sure you want to delete selected payments?');
     if (!confirmDelete) return;
 
     try {
-      const response = await fetch(`/api/delete_payment/${paymentId}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-      });
+      for (const paymentId of selectedPayments) {
+        const response = await fetch(`/api/delete_payment/${paymentId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to delete payment');
+        if (!response.ok) {
+          throw new Error('Failed to delete payment');
+        }
       }
-      setPayments((prevPayments) => prevPayments.filter((payment) => payment._id !== paymentId));
+
+      // Update the payments state to remove the deleted payments
+      setPayments((prevPayments) => prevPayments.filter((payment) => !selectedPayments.has(payment._id)));
+      setSelectedPayments(new Set()); // Clear selection
     } catch (error) {
       setError(error.message);
     }
+  };
+
+  const togglePaymentSelection = (paymentId) => {
+    setSelectedPayments((prevSelected) => {
+      const newSelected = new Set(prevSelected);
+      if (newSelected.has(paymentId)) {
+        newSelected.delete(paymentId); // Deselect if already selected
+      } else {
+        newSelected.add(paymentId); // Select if not already selected
+      }
+      return newSelected;
+    });
   };
 
   return (
@@ -188,7 +188,14 @@ const ViewScheduledPayments = () => {
                   </TableRow>
                 ) : (
                   payments.map((payment) => (
-                    <TableRow key={payment._id}>
+                    <TableRow
+                      key={payment._id}
+                      onClick={() => togglePaymentSelection(payment._id)} // Toggle selection on row click
+                      sx={{
+                        backgroundColor: selectedPayments.has(payment._id) ? '#e0f7fa' : 'inherit', // Change color if selected
+                        cursor: 'pointer',
+                      }}
+                    >
                       <TableCell>{payment.amount}</TableCell>
                       <TableCell>{payment.payee}</TableCell>
                       <TableCell>{payment.payment_type}</TableCell>
@@ -199,13 +206,6 @@ const ViewScheduledPayments = () => {
                       </TableCell>
                       <TableCell>{payment.is_indefinite ? 'Yes' : 'No'}</TableCell>
                       <TableCell>
-                        <Button
-                          variant="contained"
-                          color="secondary"
-                          onClick={() => handleDeletePayment(payment._id)}
-                        >
-                          Delete
-                        </Button>
                         <Button
                           variant="contained"
                           color="primary"
@@ -234,6 +234,16 @@ const ViewScheduledPayments = () => {
               Schedule Another Payment
             </Button>
           </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleDeleteSelectedPayments} // Delete selected payments
+              disabled={selectedPayments.size === 0} // Disable if no payments are selected
+            >
+              Delete Selected Payments
+            </Button>
+          </Grid>
         </Grid>
       </Box>
 
@@ -251,7 +261,6 @@ const ViewScheduledPayments = () => {
             onChange={handleInputChange}
             required
           />
-          
           <FormControl fullWidth margin="normal">
             <InputLabel>Payee</InputLabel>
             <Select
@@ -267,7 +276,6 @@ const ViewScheduledPayments = () => {
               ))}
             </Select>
           </FormControl>
-          
           <TextField
             label="Payment Type"
             name="payment_type"
@@ -279,7 +287,6 @@ const ViewScheduledPayments = () => {
             required
           />
           <TextField
-            label="Selected Date"
             name="selected_date"
             type="date"
             variant="outlined"
@@ -308,11 +315,15 @@ const ViewScheduledPayments = () => {
             value={formData.end_date ? new Date(formData.end_date).toISOString().split('T')[0] : ''}
             onChange={handleInputChange}
           />
-          <TextField
-            name="is_indefinite"
-            type="checkbox"
-            checked={formData.is_indefinite || false}
-            onChange={(e) => setFormData((prevData) => ({ ...prevData, is_indefinite: e.target.checked }))}
+          <FormControlLabel
+            control={
+              <Checkbox
+                name="is_indefinite"
+                checked={formData.is_indefinite || false}
+                onChange={(e) => setFormData((prevData) => ({ ...prevData, is_indefinite: e.target.checked }))}
+              />
+            }
+            label="Indefinite"
           />
         </DialogContent>
         <DialogActions>
