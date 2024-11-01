@@ -24,11 +24,13 @@ function AddPayee() {
       accountBSB,
     };
 
+
+    //Error handling 
     try {
       const response = await axios.post('/api/new_payee', newPayee);
       if (response.status === 200) {
         alert('Payee successfully added!');
-        navigate(-1);
+        navigate('/view-payees');
       }
     } catch (error) {
       console.error('Invalid information entered', error);
@@ -36,6 +38,7 @@ function AddPayee() {
     }
   };
 
+  //functionality for the back button
   const handleBack = () => {
     navigate(-1);
   };
@@ -54,6 +57,7 @@ function AddPayee() {
             </Typography>
           )}
 
+          {/* This is what the payee is filling in name, bank name, account number and bsb */}
           <form onSubmit={newPayee}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
@@ -117,7 +121,7 @@ function AddPayee() {
                 <Button variant="outlined" color="primary" onClick={handleBack}>
                   Back
                 </Button>
-                <Button type="submit" variant="contained" color="success">
+                <Button variant="contained" type="submit" color="success">
                   Submit
                 </Button>
               </Grid>

@@ -27,6 +27,8 @@ accounts_collection = db["Account"]
 users_collection = db["User"]
 transaction_logs_collection = db["TransactionLog"]
 transactions_collection = db['transactions']  # Define the transactions collection
+payees_collection = db["addPayee"]
+payment_collection = db["Payment"]
 
 # Route to handle user login
 @api.route('/api/LoginPage', methods=['POST'])
@@ -372,3 +374,180 @@ def get_accounts_by_user():
     except Exception as e:
         print(f"Error fetching accounts by user_id: {e}")
         return jsonify({"error": str(e)}), 500
+
+
+
+
+import logging
+from flask import request, jsonify
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+    # Route to add a new payee
+@api.route('/api/new_payee', methods=['POST'])
+def new_payee():
+    data = request.json
+    required_fields = ['firstName', 'lastName', 'bankName', 'accountNumber', 'accountBSB']
+
+    # Validate the required fields
+    for field in required_fields:
+        if field not in data:
+            return jsonify({'error': f'Missing required field: {field}'}), 400
+
+    payee = {
+        'first_name': data['firstName'],
+        'last_name': data['lastName'],
+        'bank_name': data['bankName'],
+        'account_number': data['accountNumber'],
+        'account_bsb': data['accountBSB']
+    }
+
+    try:
+        payees_collection.insert_one(payee)
+        return jsonify({'message': 'Payee successfully added!'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@api.route('/api/payees', methods=['GET'])
+def get_payees():
+    try:
+        payees = list(payees_collection.find())
+
+        for payee in payees:
+            payee["_id"] = str(payee["_id"])  # Convert ObjectId to string
+
+        if not payees:
+            return jsonify({"message": "No payees found."}), 404
+
+        return jsonify(payees), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+# Route to delete payees
+@api.route('/api/delete_payees', methods=['POST'])
+def delete_payees():
+    data = request.json
+    payee_ids = data.get('ids')
+
+    if not payee_ids:
+        return jsonify({'error': 'No payee IDs provided'}), 400
+
+    try:
+        result = payees_collection.delete_many({'_id': {'$in': [ObjectId(id) for id in payee_ids]}})
+        return jsonify({'message': f'Deleted {result.deleted_count} payee(s)'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Route to edit a payee
+@api.route('/api/edit_payee/<payee_id>', methods=['PUT'])
+def edit_payee(payee_id):
+    data = request.json
+    required_fields = ['firstName', 'lastName', 'bankName', 'accountNumber', 'accountBSB']
+
+    # Validate the required fields
+    for field in required_fields:
+        if field not in data:
+            return jsonify({'error': f'Missing required field: {field}'}), 400
+
+    payee_update = {
+        'first_name': data['firstName'],
+        'last_name': data['lastName'],
+        'bank_name': data['bankName'],
+        'account_number': data['accountNumber'],
+        'account_bsb': data['accountBSB'],
+        "date_added": datetime.now()
+    }
+
+    try:
+        result = payees_collection.update_one({'_id': ObjectId(payee_id)}, {'$set': payee_update})
+
+        if result.modified_count == 0:
+            return jsonify({'error': 'Payee not found or no changes made'}), 404
+
+        return jsonify({'message': 'Payee successfully updated!'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@api.route('/api/schedule_payment', methods=['POST'])
+def schedule_payment():
+    try:
+        # Extract payment_data from the request
+        payment_data = request.json
+        
+        # Validate required fields (example)
+        required_fields = ['amount', 'payee', 'paymentType', 'selectedDate']  # Change 'transferTo' to 'payee'
+        for field in required_fields:
+            if field not in payment_data:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+
+        # Save payment data to the database
+        result = payment_collection.insert_one(payment_data)
+
+        if result.inserted_id:
+            return jsonify({"message": "Payment scheduled successfully!"}), 201
+        else:
+            return jsonify({"error": "Failed to schedule payment."}), 400
+
+    except Exception as e:
+        print(f"An error occurred while scheduling the payment: {str(e)}")  # Log the full error
+        return jsonify({"error": str(e)}), 500
+    
+@api.route('/api/scheduled_payments', methods=['GET'])
+def get_scheduled_payments():
+            try:
+                # Query the database to get all scheduled payments
+                payments = list(payment_collection.find())
+
+                # Prepare the data to return in a JSON-friendly format
+                payment_list = []
+                for payment in payments:
+                    payment_list.append({
+                        "_id": str(payment["_id"]),
+                        "amount": payment["amount"],
+                        "payee": payment["payee"],
+                        "payment_type": payment["paymentType"],
+                        "selected_date": payment["selectedDate"],
+                        "recurrence": payment.get("recurrence", None),  # Use .get() to handle optional fields
+                        "end_date": payment.get("endDate", None),
+                        "is_indefinite": payment.get("isIndefinite", False)
+        })
+
+                return jsonify(payment_list), 200
+
+            except Exception as e:
+                print(f"An error occurred while fetching scheduled payments: {str(e)}")
+                return jsonify({"error": str(e)}), 500
+
+
+
+    # Route to delete a scheduled payment
+@api.route('/api/delete_payment/<payment_id>', methods=['DELETE'])
+def delete_payment(payment_id):
+    try:
+        result = payment_collection.delete_one({'_id': ObjectId(payment_id)})
+
+        if result.deleted_count == 0:
+            return jsonify({'error': 'Payment not found'}), 404
+
+        return jsonify({'message': 'Payment successfully deleted!'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+    # Route to edit a scheduled payment
+@api.route('/api/edit_payment/<payment_id>', methods=['PUT'])
+def edit_payment(payment_id):
+    try:
+        # Get the data from the request
+        data = request.get_json()
+        updated_fields = {key: data[key] for key in data if key in ['amount', 'payee', 'payment_type', 'selected_date', 'recurrence', 'end_date', 'is_indefinite']}
+        
+        # Update the payment in the database
+        result = payment_collection.update_one({'_id': ObjectId(payment_id)}, {'$set': updated_fields})
+
+        if result.modified_count == 0:
+            return jsonify({'error': 'Payment not found or no changes made'}), 404
+
+        return jsonify({'message': 'Payment successfully updated!'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

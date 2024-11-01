@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 import { 
     Box, 
     Container, 
@@ -13,8 +12,11 @@ import {
     TableContainer, 
     TableHead, 
     TableRow, 
-    Paper, 
-    Checkbox 
+    Paper,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions
 } from '@mui/material';
 
 const ViewPayee = () => {
@@ -25,6 +27,7 @@ const ViewPayee = () => {
     const [editingPayee, setEditingPayee] = useState(null);
     const [formData, setFormData] = useState({});
     const [searchQuery, setSearchQuery] = useState('');
+    const [dialogOpen, setDialogOpen] = useState(false);
 
     useEffect(() => {
         fetchPayees();
@@ -36,7 +39,7 @@ const ViewPayee = () => {
         setPayees(data);
     };
 
-    const handleCheckboxChange = (payeeId) => {
+    const handleRowClick = (payeeId) => {
         setSelectedPayees((prevSelected) => {
             const newSelected = new Set(prevSelected);
             if (newSelected.has(payeeId)) {
@@ -47,7 +50,7 @@ const ViewPayee = () => {
             return newSelected;
         });
     };
-
+    //handles deletion from database
     const handleDeleteSelected = async () => {
         try {
             const response = await fetch('/api/delete_payees', {
@@ -60,13 +63,12 @@ const ViewPayee = () => {
                 throw new Error('Failed to delete payees');
             }
             setPayees((prevPayees) => prevPayees.filter(payee => !selectedPayees.has(payee._id)));
-            fetchPayees();
             setSelectedPayees(new Set());
         } catch (error) {
             setError(error.message);
         }
     };
-
+    //handles edit button
     const handleEditClick = (payee) => {
         setEditingPayee(payee);
         setFormData({
@@ -76,15 +78,15 @@ const ViewPayee = () => {
             accountNumber: payee.account_number,
             accountBSB: payee.account_bsb,
         });
+        setDialogOpen(true);
     };
-
+    //effects change as its happening
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
-
-    const handleUpdatePayee = async (e) => {
-        e.preventDefault();
+    //handles the update button
+    const handleUpdatePayee = async () => {
         if (!editingPayee) return;
 
         try {
@@ -99,13 +101,14 @@ const ViewPayee = () => {
             }
 
             fetchPayees();
+            setDialogOpen(false);
             setEditingPayee(null);
             setFormData({});
         } catch (error) {
             setError(error.message);
         }
     };
-
+// handles back functionilty
     const handleBack = () => {
         navigate('/');
     };
@@ -115,6 +118,8 @@ const ViewPayee = () => {
     );
 
     return (
+
+        //contains the table design and the dialog for editing
         <Box
             sx={{
                 background: 'linear-gradient(to right, #2193b0, #6dd5ed)',
@@ -140,124 +145,54 @@ const ViewPayee = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
-
-                <TableContainer component={Paper}>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Select</TableCell>
-                                <TableCell>First Name</TableCell>
-                                <TableCell>Last Name</TableCell>
-                                <TableCell>Bank Name</TableCell>
-                                <TableCell>Account Number</TableCell>
-                                <TableCell>Account BSB</TableCell>
-                                <TableCell>Edit</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {filteredPayees.length === 0 ? (
+                <Paper elevation={3} sx={{ p: 3, mb: 5 }}>
+                    <TableContainer component={Paper}>
+                        <Table>
+                            <TableHead>
                                 <TableRow>
-                                    <TableCell colSpan={7} align="center">
-                                        No payees found
-                                    </TableCell>
+                                    <TableCell>First Name</TableCell>
+                                    <TableCell>Last Name</TableCell>
+                                    <TableCell>Bank Name</TableCell>
+                                    <TableCell>Account Number</TableCell>
+                                    <TableCell>Account BSB</TableCell>
+                                    <TableCell>Edit</TableCell>
                                 </TableRow>
-                            ) : (
-                                filteredPayees.map((payee) => (
-                                    <TableRow key={payee._id}>
-                                        <TableCell>
-                                            <Checkbox
-                                                checked={selectedPayees.has(payee._id)}
-                                                onChange={() => handleCheckboxChange(payee._id)}
-                                            />
-                                        </TableCell>
-                                        <TableCell>{payee.first_name}</TableCell>
-                                        <TableCell>{payee.last_name}</TableCell>
-                                        <TableCell>{payee.bank_name}</TableCell>
-                                        <TableCell>{payee.account_number}</TableCell>
-                                        <TableCell>{payee.account_bsb}</TableCell>
-                                        <TableCell>
-                                            <Button
-                                                variant="contained"
-                                                color="primary"
-                                                onClick={() => handleEditClick(payee)}
-                                            >
-                                                Edit
-                                            </Button>
+                            </TableHead>
+                            <TableBody>
+                                {filteredPayees.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} align="center">
+                                            No payees found
                                         </TableCell>
                                     </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-
-                {editingPayee && (
-                    <Box sx={{ mt: 4 }}>
-                        <Typography variant="h6" gutterBottom>
-                            Edit Payee
-                        </Typography>
-                        <form onSubmit={handleUpdatePayee}>
-                            <TextField
-                                label="First Name"
-                                name="firstName"
-                                variant="outlined"
-                                fullWidth
-                                margin="normal"
-                                value={formData.firstName || ''}
-                                onChange={handleInputChange}
-                                required
-                            />
-                            <TextField
-                                label="Last Name"
-                                name="lastName"
-                                variant="outlined"
-                                fullWidth
-                                margin="normal"
-                                value={formData.lastName || ''}
-                                onChange={handleInputChange}
-                                required
-                            />
-                            <TextField
-                                label="Bank Name"
-                                name="bankName"
-                                variant="outlined"
-                                fullWidth
-                                margin="normal"
-                                value={formData.bankName || ''}
-                                onChange={handleInputChange}
-                                required
-                            />
-                            <TextField
-                                label="Account Number"
-                                name="accountNumber"
-                                variant="outlined"
-                                fullWidth
-                                margin="normal"
-                                value={formData.accountNumber || ''}
-                                onChange={handleInputChange}
-                                required
-                            />
-                            <TextField
-                                label="Account BSB"
-                                name="accountBSB"
-                                variant="outlined"
-                                fullWidth
-                                margin="normal"
-                                value={formData.accountBSB || ''}
-                                onChange={handleInputChange}
-                                required
-                            />
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                                <Button type="submit" variant="contained" color="success">
-                                    Update Payee
-                                </Button>
-                                <Button variant="outlined" color="error" onClick={() => setEditingPayee(null)}>
-                                    Cancel
-                                </Button>
-                            </Box>
-                        </form>
-                    </Box>
-                )}
+                                ) : (
+                                    filteredPayees.map((payee) => (
+                                        <TableRow 
+                                            key={payee._id}
+                                            onClick={() => handleRowClick(payee._id)}
+                                            style={{ cursor: 'pointer', backgroundColor: selectedPayees.has(payee._id) ? '#f0f0f0' : 'transparent' }}
+                                        >
+                                            <TableCell>{payee.first_name}</TableCell>
+                                            <TableCell>{payee.last_name}</TableCell>
+                                            <TableCell>{payee.bank_name}</TableCell>
+                                            <TableCell>{payee.account_number}</TableCell>
+                                            <TableCell>{payee.account_bsb}</TableCell>
+                                            <TableCell>
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    onClick={() => handleEditClick(payee)}
+                                                >
+                                                    Edit
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Paper>
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
                     <Button
@@ -273,6 +208,69 @@ const ViewPayee = () => {
                     </Button>
                 </Box>
             </Container>
+
+            {/* popup box for Editing Payee */}
+            <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+                <DialogTitle>Edit Payee</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        label="First Name"
+                        name="firstName"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={formData.firstName || ''}
+                        onChange={handleInputChange}
+                        required
+                    />
+                    <TextField
+                        label="Last Name"
+                        name="lastName"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={formData.lastName || ''}
+                        onChange={handleInputChange}
+                        required
+                    />
+                    <TextField
+                        label="Bank Name"
+                        name="bankName"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={formData.bankName || ''}
+                        onChange={handleInputChange}
+                        required
+                    />
+                    <TextField
+                        label="Account Number"
+                        name="accountNumber"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={formData.accountNumber || ''}
+                        onChange={handleInputChange}
+                        required
+                    />
+                    <TextField
+                        label="Account BSB"
+                        name="accountBSB"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={formData.accountBSB || ''}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleUpdatePayee} color="primary">
+                        Update Payee
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };

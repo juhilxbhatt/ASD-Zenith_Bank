@@ -7,7 +7,7 @@ function SchedulePayment() {
     const navigate = useNavigate();
     const [selectedDate, setSelectedDate] = useState("");
     const [paymentType, setPaymentType] = useState("one-off");
-    const [recurrence, setRecurrence] = useState("weekly");
+    const [recurrence, setRecurrence] = useState("No");
     const [endDate, setEndDate] = useState("");
     const [amount, setAmount] = useState("");
     const [payee, setPayee] = useState("");
@@ -15,7 +15,6 @@ function SchedulePayment() {
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
 
-    // Fetch payees when the component mounts
     useEffect(() => {
         const fetchPayees = async () => {
             try {
@@ -29,36 +28,38 @@ function SchedulePayment() {
     }, []);
 
     const handlePaymentTypeChange = (e) => {
-        setPaymentType(e.target.value);
-        if (e.target.value === "one-off") {
-            setEndDate("");
+        const type = e.target.value;
+        setPaymentType(type);
+        
+        // Adjust recurrence and endDate based on payment type
+        if (type === "one-off") {
+            setRecurrence("No");
+            setEndDate(""); 
+        } else {
+            setRecurrence("weekly");
         }
     };
 
     const handleRecurrenceChange = (e) => {
         setRecurrence(e.target.value);
-        if (selectedDate) {
-            if (e.target.value === "weekly") {
-                const newEndDate = new Date(selectedDate);
-                newEndDate.setDate(newEndDate.getDate() + 7);
-                setEndDate(newEndDate.toISOString().split('T')[0]);
-            } else if (e.target.value === "monthly") {
-                const newEndDate = new Date(selectedDate);
-                newEndDate.setMonth(newEndDate.getMonth() + 1);
-                setEndDate(newEndDate.toISOString().split('T')[0]);
-            }
-        }
-    };
 
-    const handleBack = () => {
-        navigate('/');
+        if (selectedDate) {
+            const newEndDate = new Date(selectedDate);
+
+            if (e.target.value === "weekly") {
+                newEndDate.setDate(newEndDate.getDate() + 7);
+            } else if (e.target.value === "monthly") {
+                newEndDate.setMonth(newEndDate.getMonth() + 1);
+            }
+
+            setEndDate(newEndDate.toISOString().split('T')[0]);
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         const parsedAmount = parseFloat(amount);
-
         if (isNaN(parsedAmount) || parsedAmount <= 0) {
             setError("Amount must be a number greater than 0");
             return;
@@ -80,22 +81,23 @@ function SchedulePayment() {
             paymentType,
             selectedDate,
             recurrence,
-            endDate: endDate || null
+            endDate: endDate || null,
         };
 
         setError("");
-
         try {
             await axios.post('/api/schedule_payment', paymentData);
             setSuccessMessage("Payment successfully scheduled!");
-            // Emptying form fields
+
+            // Clear form fields
             setAmount(""); 
             setPayee(""); 
             setSelectedDate("");
             setEndDate("");
-            setRecurrence("weekly");
+            setRecurrence("No");
             setPaymentType("one-off");
-            navigate('/ViewScheduledPayments');
+
+            navigate('/view-scheduled-payments');
         } catch (err) {
             setError(err.response?.data?.error || "An error occurred while scheduling the payment.");
         }
@@ -109,21 +111,11 @@ function SchedulePayment() {
                         Schedule Payment
                     </Typography>
 
-                    {error && (
-                        <Alert severity="error" sx={{ mb: 2 }}>
-                            {error}
-                        </Alert>
-                    )}
-
-                    {successMessage && (
-                        <Alert severity="success" sx={{ mb: 2 }}>
-                            {successMessage}
-                        </Alert>
-                    )}
+                    {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                    {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
 
                     <form onSubmit={handleSubmit}>
                         <Grid container spacing={3}>
-                            {/* Amount Input */}
                             <Grid item xs={12}>
                                 <TextField
                                     label="Amount"
@@ -132,22 +124,15 @@ function SchedulePayment() {
                                     type="number"
                                     fullWidth
                                     required
-                                    InputProps={{
-                                        startAdornment: <Typography variant="body2" sx={{ pr: 1 }}>$</Typography>
-                                    }}
+                                    InputProps={{ startAdornment: <Typography variant="body2" sx={{ pr: 1 }}>$</Typography> }}
                                     sx={{ mb: 2 }}
                                 />
                             </Grid>
 
-                            {/* Payee Selection */}
                             <Grid item xs={12}>
                                 <FormControl fullWidth sx={{ mb: 2 }}>
                                     <InputLabel>Transfer To</InputLabel>
-                                    <Select
-                                        value={payee}
-                                        onChange={(e) => setPayee(e.target.value)}
-                                        required
-                                    >
+                                    <Select value={payee} onChange={(e) => setPayee(e.target.value)} required>
                                         <MenuItem value="">Select Payee</MenuItem>
                                         {payees.map((payee) => (
                                             <MenuItem key={payee._id} value={payee.first_name + ' ' + payee.last_name}>
@@ -158,7 +143,6 @@ function SchedulePayment() {
                                 </FormControl>
                             </Grid>
 
-                            {/* Payment Type */}
                             <Grid item xs={12}>
                                 <FormControl fullWidth sx={{ mb: 2 }}>
                                     <InputLabel>Payment Type</InputLabel>
@@ -169,22 +153,18 @@ function SchedulePayment() {
                                 </FormControl>
                             </Grid>
 
-                            {/* Payment Date */}
                             <Grid item xs={12}>
                                 <TextField
                                     label="Select Payment Date"
                                     type="date"
                                     value={selectedDate}
                                     onChange={(e) => setSelectedDate(e.target.value)}
-                                    InputLabelProps={{
-                                        shrink: true,
-                                    }}
+                                    InputLabelProps={{ shrink: true }}
                                     fullWidth
                                     required
                                 />
                             </Grid>
 
-                            {/* Recurrence and End Date for Recurring Payments */}
                             {paymentType === "recurring" && (
                                 <>
                                     <Grid item xs={12}>
@@ -203,9 +183,7 @@ function SchedulePayment() {
                                             type="date"
                                             value={endDate}
                                             onChange={(e) => setEndDate(e.target.value)}
-                                            InputLabelProps={{
-                                                shrink: true,
-                                            }}
+                                            InputLabelProps={{ shrink: true }}
                                             fullWidth
                                             required
                                         />
@@ -213,9 +191,8 @@ function SchedulePayment() {
                                 </>
                             )}
 
-                            {/* Submit and Back Buttons */}
                             <Grid item xs={6}>
-                                <Button variant="outlined" fullWidth onClick={handleBack}>
+                                <Button variant="outlined" fullWidth onClick={() => navigate('/')}>
                                     Back
                                 </Button>
                             </Grid>
